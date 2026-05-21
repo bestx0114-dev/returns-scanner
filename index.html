@@ -56,7 +56,7 @@
       </div>
       <div>
         <h1 class="text-sm font-bold tracking-wider text-white">ReturnScanner</h1>
-        <p class="text-[10px] text-gray-400">退貨智能核對系統 v3.8</p>
+        <p class="text-[10px] text-gray-400">退貨智能核對系統 v3.9</p>
       </div>
     </div>
     <div id="sync-status" class="flex items-center space-x-1.5 text-xs text-yellow-500 bg-yellow-500/10 px-2.5 py-1 rounded-full border border-yellow-500/20 cursor-pointer">
@@ -80,7 +80,7 @@
       </div>
     </div>
 
-    <!-- 1. 當日處理狀態儀表板 (支援手動更正總量) -->
+    <!-- 1. 當日處理狀態儀表板 -->
     <section class="grid grid-cols-3 gap-3 mb-5">
       <div onclick="modifyTotalReturns()" class="bg-gray-900 p-3 rounded-xl border border-indigo-500/30 text-center shadow cursor-pointer hover:bg-gray-850 active:scale-95 transition group">
         <p class="text-[11px] text-gray-400 mb-0.5 flex items-center justify-center gap-1 group-hover:text-indigo-400">
@@ -105,7 +105,7 @@
         第一步：掃描包裹寄件單號
       </h2>
       
-      <!-- 相機掃描視窗 (包含一維條碼/二維條碼快速切換頁籤，解決一維條碼難讀取問題) -->
+      <!-- 相機掃描視窗 (支援一維橫長條碼高解析對焦) -->
       <div id="camera-box" class="hidden mb-3 bg-black rounded-xl overflow-hidden border border-gray-700 relative flex flex-col shadow-inner">
         <!-- 條碼模式切換器 -->
         <div class="grid grid-cols-2 gap-1 bg-gray-900 p-1 border-b border-gray-800">
@@ -138,7 +138,7 @@
       </div>
     </section>
 
-    <!-- 3. 【清點核對工作區：中間】(點選/掃描包裹後展開) -->
+    <!-- 3. 【清點核對工作區：中間】 -->
     <section id="check-panel" class="hidden bg-gray-900 rounded-2xl border border-gray-800 p-4 mb-5 shadow-2xl transition-all duration-300">
       <!-- 頂部包裹資訊 -->
       <div class="flex items-start justify-between border-b border-gray-800 pb-3 mb-4">
@@ -171,7 +171,7 @@
           退貨商品清單 (<span id="panel-items-count">0</span>)
         </h3>
         <p class="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg leading-relaxed">
-          💡 <b>例外清點法已啟用</b>：系統預設退回數量「正常」。若發現短缺、漏寄或破損，請手動增加商品的「異常數量」並輸入原因。
+          💡 <b>主動例外通報法已啟用</b>：系統預設所有退回商品為「正常」，若無誤，直接按下方完成存檔即可。有問題再增設「異常數量」並選擇原因。
         </p>
         <div id="panel-items-list" class="space-y-3">
           <!-- 商品項目會動態插入於此 -->
@@ -193,18 +193,11 @@
         <p class="text-[9px] text-gray-500 mt-1.5 leading-relaxed">說明：若需要確認退回的是否為正確商品，可刷入「產品代號」，系統會自動在清單中核對。</p>
       </div>
 
-      <!-- 清點異常與 AI 分析模組 -->
+      <!-- 備註與送出 -->
       <div class="space-y-3 border-t border-gray-800 pt-4 mb-5">
-        <label class="block text-xs font-bold text-gray-400 uppercase">總清點結果與備註</label>
+        <label class="block text-xs font-bold text-gray-400 uppercase">清點備註</label>
         <div>
-          <select id="panel-status-select" onchange="handleStatusChange()" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none">
-            <option value="Matched">已清點-完全相符 (無異常)</option>
-            <option value="Discrepancy">已清點-數量/商品不符 (異常)</option>
-          </select>
-        </div>
-        
-        <div>
-          <textarea id="panel-staff-notes" placeholder="總清點備註（例如：外箱破損、已拍拆箱影片存證...）" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none select-text"></textarea>
+          <textarea id="panel-staff-notes" placeholder="清點備註（例如：已拍拆箱影片存證、外包裝有潑水...）" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none select-text"></textarea>
         </div>
 
         <!-- Gemini AI 退貨爭議協商草稿生成器 (當有登記商品異常時才會自動展開) -->
@@ -249,7 +242,7 @@
       </button>
     </section>
 
-    <!-- 5. 今日已完成記錄列表 (常駐於下部) -->
+    <!-- 5. 今日已完成記錄列表 -->
     <section class="bg-gray-900 rounded-2xl border border-gray-800 p-4 shadow mb-5">
       <h2 class="text-xs font-bold text-gray-300 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
         <i data-lucide="history" class="w-4 h-4 text-emerald-400"></i>
@@ -273,7 +266,7 @@
       </div>
     </section>
 
-    <!-- 6. 【包裹列表與搜尋面板：移至最下方】 (對照資料庫) -->
+    <!-- 6. 【包裹列表與搜尋面板：移至最下方】 -->
     <section id="simulator-section" class="bg-gray-900 rounded-2xl border border-gray-800 p-4 shadow">
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-xs font-bold text-gray-300 flex items-center gap-1.5 uppercase tracking-wider">
@@ -284,17 +277,14 @@
 
       <!-- 搜尋與過濾控制區 -->
       <div class="space-y-2 mb-3">
-        <!-- 清單內部搜尋框 -->
         <div class="relative flex items-center">
           <input type="text" id="list-search-input" oninput="filterParcels()" placeholder="快速搜尋單號或平台訂單..." class="w-full bg-gray-850 border border-gray-700 rounded-lg py-2 pl-9 pr-4 text-xs text-white focus:outline-none focus:border-indigo-500 select-text">
           <i data-lucide="filter" class="absolute left-3 w-3.5 h-3.5 text-gray-400"></i>
-          <!-- 清除搜尋按鈕 -->
           <button onclick="clearListSearch()" class="absolute right-2.5 text-gray-500 hover:text-gray-300">
             <i data-lucide="x" class="w-3.5 h-3.5"></i>
           </button>
         </div>
 
-        <!-- 狀態篩選頁籤 (Tabs) -->
         <div class="grid grid-cols-3 gap-1 bg-gray-950 p-1 rounded-lg border border-gray-800">
           <button id="tab-pending" onclick="switchTab('Pending')" class="text-[11px] font-bold py-1.5 rounded-md text-center transition bg-indigo-600 text-white shadow">
             未清點
@@ -316,12 +306,11 @@
 
   </main>
 
-  <!-- 頁尾聲明 -->
   <footer class="bg-gray-950 border-t border-gray-800 py-3 text-center text-[10px] text-gray-500 fixed bottom-0 left-0 right-0 z-30">
     ReturnScanner · 與 Google Sheets 雲端即時安全對接
   </footer>
 
-  <!-- 自訂遮罩確認提示框 (取代瀏覽器 alert 彈窗) -->
+  <!-- 自訂遮罩確認提示框 -->
   <div id="custom-alert" class="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-200">
     <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 max-w-sm w-full text-center shadow-2xl">
       <div id="alert-icon-box" class="mx-auto w-12 h-12 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mb-3">
@@ -335,26 +324,21 @@
     </div>
   </div>
 
-  <!-- ==============================================================
-       🔧 系統邏輯核心 JavaScript (無縫結合 Google Sheets 與 Gemini)
-       ============================================================== -->
   <script>
     let parcelsData = []; 
     let currentParcel = null; 
     let html5QrcodeScanner = null; 
-    let isCameraScanning = false; // 用來追蹤相機目前是否正在掃描的 flag
-    let currentFilterTab = "Pending"; // 預設只顯示「未清點」
-    let activeCameraMode = "barcode"; // 預設掃描模式為「一維條碼」
-    let userCustomTotalReturns = null; // 使用者手動設定的今日退貨總數
+    let isCameraScanning = false; 
+    let currentFilterTab = "Pending"; 
+    let activeCameraMode = "barcode"; 
+    let userCustomTotalReturns = null; 
     
-    // 初始化自製 Web Audio API 嗶嗶音效，不需外加音檔，完全相容各大手機
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playBeep(success = true) {
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
       if (success) {
-        // 嗶！一聲 (高音短音：成功)
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain);
@@ -365,7 +349,6 @@
         osc.start();
         osc.stop(audioCtx.currentTime + 0.15);
       } else {
-        // 嗶、嗶！兩聲 (中低音：異常警示)
         [0, 0.15].forEach(delay => {
           setTimeout(() => {
             const osc = audioCtx.createOscillator();
@@ -382,7 +365,6 @@
       }
     }
 
-    // 自訂遮罩確認提示彈窗
     function showAlert(title, message, type = 'info') {
       const modal = document.getElementById('custom-alert');
       const titleEl = document.getElementById('alert-title');
@@ -419,7 +401,6 @@
       }, 200);
     }
 
-    // 偵測是否從本機檔案開啟 (CORS 防呆偵測)
     function checkCORSMode() {
       if (window.location.protocol === 'file:') {
         const warningBox = document.getElementById('cors-local-warning');
@@ -427,20 +408,17 @@
       }
     }
 
-    // 頁面初始化
     window.onload = function() {
       lucide.createIcons();
       checkCORSMode();
       fetchSheetData();
     };
 
-    // 1. 從 Google Sheets (GAS Web App) 撈取退貨資料
     async function fetchSheetData() {
       const syncStatus = document.getElementById('sync-status');
       const syncText = document.getElementById('sync-text');
       
       if (GAS_API_URL.includes("XXXXXX_YOUR_ID_XXXXXX")) {
-        // 如果還沒設定 GAS 網址，加載預設體驗數據
         syncStatus.className = "flex items-center space-x-1.5 text-xs text-blue-500 bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-500/20";
         syncText.innerText = "體驗模擬模式中";
         loadMockData();
@@ -465,11 +443,10 @@
         syncStatus.className = "flex items-center space-x-1.5 text-xs text-rose-500 bg-rose-500/10 px-2.5 py-1 rounded-full border border-rose-500/20";
         syncText.innerText = "連線失敗，點此重試";
         syncStatus.onclick = fetchSheetData;
-        loadMockData(); // 連線失敗則加載預設體驗數據，確保仍可操作
+        loadMockData(); 
       }
     }
 
-    // 2. 載入預設體驗明細資料
     function loadMockData() {
       parcelsData = [
         {
@@ -508,24 +485,11 @@
             { sku: "PIJF002", name: "一次性機車套-5入(袋出)", expectedQty: 2, receivedQty: 2, location: "4C-21-C01", price: 56, rowNum: 4 },
             { sku: "319-4536", name: "28O1-拋棄式免洗淋杯長型(8入)_TY", expectedQty: 2, receivedQty: 2, location: "4B-13-D01", price: 21, rowNum: 5 }
           ]
-        },
-        {
-          trackingNo: "TW2608872943353",
-          buyer: "260411FQBYEBYY",
-          orderId: "260411FQBYEBYY",
-          carrier: "蝦皮店到店退貨",
-          status: "Pending",
-          notes: "",
-          buyerNotes: "商品瑕疵 不小心多買一個，所以要退，麻煩了",
-          items: [
-            { sku: "319-3071", name: "23D2-透明果凍機車坐墊護套_特大", expectedQty: 1, receivedQty: 1, location: "5C-25-C04", price: 53.5, rowNum: 6 }
-          ]
         }
       ];
       updateDashboardAndSimulator();
     }
 
-    // 3. 更新儀表板數據與包裹清單
     function updateDashboardAndSimulator() {
       const totalFromSheets = parcelsData.length;
       const done = parcelsData.filter(p => p.status.includes("已清點")).length;
@@ -540,7 +504,6 @@
       filterParcels();
     }
 
-    // 手動更正「今日退貨數」
     function modifyTotalReturns() {
       const currentVal = document.getElementById('stat-total').innerText;
       const newVal = prompt("請輸入今日預計收到退貨包裹的正確總數：", currentVal);
@@ -556,7 +519,6 @@
       }
     }
 
-    // 頁籤切換邏輯 (未清點、已清點、全部)
     function switchTab(tab) {
       currentFilterTab = tab;
       
@@ -573,13 +535,11 @@
       filterParcels();
     }
 
-    // 清除包裹清單搜尋
     function clearListSearch() {
       document.getElementById('list-search-input').value = "";
       filterParcels();
     }
 
-    // 精準過濾與渲染包裹列表
     function filterParcels() {
       const searchKeyword = document.getElementById('list-search-input').value.trim().toLowerCase();
       const simContainer = document.getElementById('simulated-parcels');
@@ -637,7 +597,6 @@
       });
     }
 
-    // 切換相機掃描模式
     function setCameraMode(mode) {
       if (activeCameraMode === mode && isCameraScanning) return;
       activeCameraMode = mode;
@@ -660,7 +619,6 @@
       }
     }
 
-    // 4. 控制條碼掃描相機 (重大技術升級：要求 Full HD/HD 解析度解決一維英文細線條碼對焦問題)
     async function toggleCamera(show) {
       const camBox = document.getElementById('camera-box');
       if (show) {
@@ -685,7 +643,6 @@
         html5QrcodeScanner = new Html5Qrcode("interactive-reader");
       }
       
-      // 🎯 重大解析度提升：請求 Full HD (1080P) 或 HD (720P) 解析度，防止英數混雜細小線條模糊
       const config = { 
         fps: 25,
         videoConstraints: {
@@ -696,12 +653,10 @@
       };
       
       if (activeCameraMode === "barcode") {
-        // 🎯 寬大且扁的物流條碼專用對焦框 (寬度 90% 螢幕，避免長條英文條碼兩端被切斷)
         config.qrbox = (width, height) => {
           const qrWidth = Math.min(width * 0.90, 450);
           return { width: qrWidth, height: 100 };
         };
-        // 強制鎖定一維條碼最核心物流協議，不浪費效能
         config.formatsToSupport = [
           Html5QrcodeSupportedFormats.CODE_128,
           Html5QrcodeSupportedFormats.CODE_39,
@@ -710,7 +665,6 @@
           Html5QrcodeSupportedFormats.ITF
         ];
       } else {
-        // QR Code 專用正方形對焦框
         config.qrbox = (width, height) => {
           const size = Math.min(width, height) * 0.75;
           return { width: size, height: size };
@@ -727,7 +681,7 @@
           document.getElementById('manual-tracking').value = decodedText;
           loadParcelForChecking(decodedText);
         },
-        () => {} // 掃描幀靜默
+        () => {} 
       ).then(() => {
         isCameraScanning = true;
       }).catch((err) => {
@@ -737,17 +691,6 @@
       });
     }
 
-    // 5. 手動搜尋
-    function handleManualSearch() {
-      const query = document.getElementById('manual-tracking').value.trim();
-      if (!query) {
-        showAlert("提示", "請先輸入或掃描寄件單號！", "info");
-        return;
-      }
-      loadParcelForChecking(query);
-    }
-
-    // 6. 載入包裹清點面板 (例外清點)
     function loadParcelForChecking(trackingNo) {
       const parcel = parcelsData.find(p => p.trackingNo.toLowerCase() === trackingNo.toLowerCase().trim());
       if (!parcel) {
@@ -756,10 +699,9 @@
         return;
       }
 
-      currentParcel = JSON.parse(JSON.stringify(parcel)); // 複製一份
+      currentParcel = JSON.parse(JSON.stringify(parcel)); 
       playBeep(true);
 
-      // 填寫面板基本資訊
       document.getElementById('panel-tracking').innerText = currentParcel.trackingNo;
       document.getElementById('panel-carrier').innerText = currentParcel.carrier;
       document.getElementById('panel-order-id').innerText = currentParcel.orderId;
@@ -767,18 +709,12 @@
       document.getElementById('panel-items-count').innerText = currentParcel.items.length;
       document.getElementById('panel-staff-notes').value = currentParcel.notes || "";
       
-      // 初始化每個商品的「異常數量 (problemQty)」與「個別備註 (itemNote)」
+      // 初始化例外清點格式 (加入異常原因選項 exceptionType，預設為「正常」)
       currentParcel.items.forEach(item => {
-        if (currentParcel.status !== "Pending") {
-          item.problemQty = Math.max(0, item.expectedQty - item.receivedQty);
-        } else {
-          item.problemQty = 0; 
-        }
+        item.problemQty = 0; 
+        item.exceptionType = "正常"; // 🎯 預設商品清點狀態為「正常」
         item.itemNote = ""; 
       });
-
-      const selectStatus = document.getElementById('panel-status-select');
-      selectStatus.value = currentParcel.status.includes("數量不符") ? "Discrepancy" : "Matched";
 
       document.getElementById('ai-draft-box').classList.add('hidden');
       document.getElementById('drafts-result').classList.add('hidden');
@@ -790,13 +726,13 @@
       checkPanel.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 7. 渲染商品例外清點卡片
+    // 7. 渲染包含「異常類別下拉選單」的商品卡片
     function renderCheckingItems() {
       const container = document.getElementById('panel-items-list');
       container.innerHTML = "";
 
       currentParcel.items.forEach((item, index) => {
-        const hasProblem = (item.problemQty || 0) > 0;
+        const hasProblem = item.exceptionType !== "正常";
         
         const cardBorder = hasProblem 
           ? "border-rose-500/40 bg-rose-500/10 shadow-lg shadow-rose-950/20" 
@@ -816,7 +752,7 @@
               <div class="flex items-center gap-1.5">
                 <span class="text-[10px] font-bold bg-gray-800 text-gray-300 px-2 py-0.5 rounded border border-gray-700">儲位: ${item.location}</span>
                 <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeColor}">
-                  ${hasProblem ? '🚨 商品異常' : '✅ 正常相符'}
+                  清點狀態: ${item.exceptionType === '正常' ? '正常' : item.exceptionType}
                 </span>
                 <span class="text-[9px] text-gray-500 font-mono">Row: ${item.rowNum}</span>
               </div>
@@ -826,24 +762,35 @@
             <p class="text-xs font-mono font-bold text-indigo-400">NT$${item.price}</p>
           </div>
           
-          <div class="flex items-center justify-between border-t border-gray-800/40 pt-2.5">
-            <div class="text-[11px] text-gray-400">
-              應退數量: <span class="font-bold text-white">${item.expectedQty}</span> 件
+          <div class="grid grid-cols-2 gap-3 items-center border-t border-gray-800/40 pt-2.5">
+            <!-- 左側：異常類型下拉選單 -->
+            <div>
+              <label class="block text-[10px] text-gray-500 mb-1">異常原因分類：</label>
+              <select onchange="updateItemExceptionType(${index}, this.value)" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                <option value="正常" ${item.exceptionType === '正常' ? 'selected' : ''}>✅ 正常</option>
+                <option value="數量有少" ${item.exceptionType === '數量有少' ? 'selected' : ''}>1. 數量有少</option>
+                <option value="商品破損" ${item.exceptionType === '商品破損' ? 'selected' : ''}>2. 商品破損</option>
+                <option value="商品無法二次銷售" ${item.exceptionType === '商品無法二次銷售' ? 'selected' : ''}>3. 商品無法二次銷售</option>
+                <option value="其他" ${item.exceptionType === '其他' ? 'selected' : ''}>4. 其他 (自訂)</option>
+              </select>
             </div>
-            
-            <div class="flex items-center space-x-3">
-              <span class="text-[11px] text-gray-400">異常數量:</span>
-              <button onclick="changeItemQty(${index}, -1)" class="w-8 h-8 rounded-lg bg-gray-800 hover:bg-gray-700 text-white flex items-center justify-center font-bold text-sm transition">-</button>
-              <span class="text-sm font-extrabold font-mono ${matchClass} min-w-[20px] text-center">${item.problemQty || 0}</span>
-              <button onclick="changeItemQty(${index}, 1)" class="w-8 h-8 rounded-lg bg-rose-900/60 hover:bg-rose-800/80 text-white flex items-center justify-center font-bold text-sm transition">+</button>
+
+            <!-- 右側：異常數量加減 -->
+            <div class="flex flex-col items-end">
+              <span class="text-[10px] text-gray-500 mb-1">異常數量 (應退 ${item.expectedQty} 件)：</span>
+              <div class="flex items-center space-x-2">
+                <button onclick="changeItemQty(${index}, -1)" class="w-7 h-7 rounded-md bg-gray-800 hover:bg-gray-700 text-white flex items-center justify-center font-bold text-xs transition" ${item.exceptionType === '正常' ? 'disabled' : ''}>-</button>
+                <span class="text-xs font-extrabold font-mono ${matchClass} min-w-[16px] text-center">${item.problemQty || 0}</span>
+                <button onclick="changeItemQty(${index}, 1)" class="w-7 h-7 rounded-md bg-rose-900/60 hover:bg-rose-800/80 text-white flex items-center justify-center font-bold text-xs transition" ${item.exceptionType === '正常' ? 'disabled' : ''}>+</button>
+              </div>
             </div>
           </div>
 
-          <!-- 異常備註輸入框 -->
-          ${hasProblem ? `
+          <!-- 自訂其他異常備註輸入框 -->
+          ${item.exceptionType === '其他' ? `
             <div class="mt-2 pt-2 border-t border-rose-900/20">
               <input type="text" 
-                     placeholder="請輸入此商品的異常原因 (例如: 破損、少退)..." 
+                     placeholder="請輸入其他自訂異常原因 (將寫入清點狀態中)..." 
                      class="w-full bg-gray-950 border border-rose-900/30 rounded-lg p-2 text-[11px] text-gray-200 placeholder-rose-700/60 focus:outline-none focus:border-rose-500 select-text"
                      value="${item.itemNote || ''}" 
                      oninput="updateItemNote(${index}, this.value)">
@@ -854,26 +801,42 @@
       });
     }
 
-    // 即時更新個別備註
+    // 更新商品的「異常類別」：如果改回正常，異常數量自動歸零
+    function updateItemExceptionType(index, value) {
+      if (!currentParcel) return;
+      const item = currentParcel.items[index];
+      item.exceptionType = value;
+      
+      if (value === "正常") {
+        item.problemQty = 0;
+        item.itemNote = "";
+      } else {
+        // 例外警報：一旦選了異常，預設異常量給 1 件
+        if (item.problemQty === 0) item.problemQty = 1;
+      }
+
+      checkAndAutoSelectStatus();
+      renderCheckingItems();
+      playBeep(true);
+    }
+
     function updateItemNote(index, value) {
       if (currentParcel && currentParcel.items[index]) {
         currentParcel.items[index].itemNote = value;
       }
     }
 
-    function closeCheckPanel() {
-      document.getElementById('check-panel').classList.add('hidden');
-      document.getElementById('manual-tracking').value = ""; // 清空輸入框
-      currentParcel = null;
-    }
-
-    // 8. 調整「異常數量」 (+ / -)
     function changeItemQty(index, delta) {
       if (!currentParcel) return;
       const item = currentParcel.items[index];
+      
+      // 如果狀態是正常，不可調整數量
+      if (item.exceptionType === "正常") return;
+
       const newProblemQty = (item.problemQty || 0) + delta;
       
-      if (newProblemQty < 0 || newProblemQty > item.expectedQty) return;
+      // 異常數最少為 1 (否則乾脆選「正常」)，最多不能超過應退數
+      if (newProblemQty < 1 || newProblemQty > item.expectedQty) return;
       item.problemQty = newProblemQty;
       
       checkAndAutoSelectStatus();
@@ -881,7 +844,7 @@
       playBeep(true);
     }
 
-    // 9. 條碼槍比對邏輯
+    // 條碼槍比對邏輯
     function handleSimProductScan() {
       const barcodeInput = document.getElementById('sim-product-barcode');
       const scanCode = barcodeInput.value.trim();
@@ -894,7 +857,7 @@
         playBeep(true);
         showAlert(
           "比對正確 ✅", 
-          `商品 [${scanCode}] 確實屬於該包裹退貨明細中！\n系統預設狀態為「正常」。若商品有短缺或損壞，請手動點擊該商品的「+」記錄異常數量。`, 
+          `商品 [${scanCode}] 確實屬於該包裹退貨明細中！\n系統預設狀態為「正常」。若商品有短缺或損壞，請手動調整對應商品的異常原因下拉選單！`, 
           "success"
         );
         barcodeInput.value = "";
@@ -904,11 +867,11 @@
       }
     }
 
-    // 自動判斷清點狀態
+    // 自動判斷「總清點結果與備註」：只要有商品是不正常的，App 下拉改為 Discrepancy，並自動展開 AI 聊聊草稿區
     function checkAndAutoSelectStatus() {
       let hasException = false;
       currentParcel.items.forEach(item => {
-        if ((item.problemQty || 0) > 0) {
+        if (item.exceptionType !== "正常") {
           hasException = true;
         }
       });
@@ -932,32 +895,6 @@
       }
     }
 
-    // 指數退避 API 呼叫函數
-    async function callGeminiAPIWithRetry(url, payload) {
-      const maxRetries = 5;
-      let delay = 1000;
-      for (let i = 0; i < maxRetries; i++) {
-        try {
-          const response = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-          });
-          if (response.ok) {
-            return await response.json();
-          }
-          if (response.status !== 429 && response.status < 500) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-        } catch (e) {
-          if (i === maxRetries - 1) throw e;
-        }
-        await new Promise(resolve => setTimeout(resolve, delay));
-        delay *= 2;
-      }
-      throw new Error("超過最大重試次數，API 連線失敗");
-    }
-
     // 11. 呼叫 Gemini AI 文字生成協商與申訴草稿
     async function generateAIDrafts() {
       if (!currentParcel) return;
@@ -975,8 +912,9 @@
 
       let discrepancyDetails = "";
       currentParcel.items.forEach(item => {
-        if ((item.problemQty || 0) > 0) {
-          discrepancyDetails += `- 商品: ${item.name} (代號: ${item.sku})：買家退回申請 ${item.expectedQty} 件，我們實際收到 ${item.expectedQty - item.problemQty} 件（其中有 ${item.problemQty} 件異常，原因為: ${item.itemNote || '未備註'}）。\n`;
+        if (item.exceptionType !== "正常") {
+          const detailStr = (item.exceptionType === "其他") ? `其他: ${item.itemNote || '未明記原因'}` : `${item.exceptionType}${item.problemQty}`;
+          discrepancyDetails += `- 商品: ${item.name} (代號: ${item.sku})：異常狀態為: [${detailStr}]。\n`;
         }
       });
 
@@ -1063,7 +1001,7 @@
       }
     }
 
-    // 13. 確認存檔並將清點結果回填 Google Sheets (已優化：精確回傳 rowNum 進行精準整列寫入)
+    // 13. 確認存檔並將清點結果回填 Google Sheets (核心：根據商品類別獨立回填 N 欄與 M 欄，徹底實施主動例外通報)
     async function submitCheckResult() {
       if (!currentParcel) return;
 
@@ -1077,39 +1015,62 @@
         正在儲存並即時回填 Google 試算表中...
       `;
 
-      // 1. 自動彙整每個商品的個別備註
-      let itemExceptionsSummary = "";
-      currentParcel.items.forEach(item => {
-        if ((item.problemQty || 0) > 0) {
-          itemExceptionsSummary += `[${item.sku}] 異常 ${item.problemQty} 件 ${item.itemNote ? '(' + item.itemNote + ')' : ''}; `;
+      // 檢查是否整體包裹有任何一列發生異常
+      let hasAnyException = false;
+      const computedItems = currentParcel.items.map(item => {
+        let computedStatus = "正常";
+        let computedRealQty = item.expectedQty; // 預設實收數量為全部
+
+        if (item.exceptionType !== "正常") {
+          hasAnyException = true;
+          const qty = item.problemQty || 0;
+
+          // 核心規則：
+          // 1. 數量有少 -> 實收數自動扣除異常量，清點狀態寫入「數量有少[X]」
+          if (item.exceptionType === "數量有少") {
+            computedRealQty = Math.max(0, item.expectedQty - qty);
+            computedStatus = `數量有少${qty}`;
+          } 
+          // 2. 商品破損 -> 實收數不扣除，清點狀態寫入「商品破損[X]」
+          else if (item.exceptionType === "商品破損") {
+            computedStatus = `商品破損${qty}`;
+          } 
+          // 3. 商品無法二次銷售 -> 實收數不扣除，清點狀態寫入「商品無法二次銷售量[X]」
+          else if (item.exceptionType === "商品無法二次銷售") {
+            computedStatus = `商品無法二次銷售量${qty}`;
+          } 
+          // 4. 其他 -> 實收數不扣除，清點狀態寫入「其他:[自訂原因]」
+          else if (item.exceptionType === "其他") {
+            const customReason = item.itemNote.trim() || "未備註自訂原因";
+            computedStatus = `其他:${customReason}`;
+          }
         }
+
+        return {
+          sku: item.sku,
+          rowNum: item.rowNum,
+          computedStatus: computedStatus,   // 回填至 M 欄
+          computedRealQty: computedRealQty  // 回填至 N 欄
+        };
       });
 
-      // 2. 整合總清點備註
+      // 彙整總備註 (O 欄)
       let finalStaffNotes = document.getElementById('panel-staff-notes').value.trim();
-      if (itemExceptionsSummary) {
-        finalStaffNotes = (finalStaffNotes ? finalStaffNotes + "\n" : "") + "商品異常細項: " + itemExceptionsSummary;
-      }
 
-      // 3. 封裝數據回傳：帶入 rowNum 進去進行一列一列精準對照，防止同 SKU 重疊 BUG
+      // 整體包裹狀態判斷
+      const finalParcelStatus = hasAnyException ? "Discrepancy" : "Matched";
+
       const payload = {
         trackingNo: currentParcel.trackingNo,
-        status: document.getElementById('panel-status-select').value,
-        notes: finalStaffNotes, // 將明細備註寫回 O 欄 (清點人員備註)
-        items: currentParcel.items.map(item => ({
-          sku: item.sku,
-          rowNum: item.rowNum, // 絕對橫列號：核心防呆機制
-          // 回傳 N 欄 (實際收到數量) = 應退數量 - 異常數量
-          receivedQty: item.expectedQty - (item.problemQty || 0) 
-        }))
+        status: finalParcelStatus, // "Matched" 或 "Discrepancy"
+        notes: finalStaffNotes,    // 總備註寫回 O 欄
+        items: computedItems       // 帶有各自 rowNum, computedStatus, computedRealQty 的陣列
       };
 
       try {
         if (GAS_API_URL.includes("XXXXXX_YOUR_ID_XXXXXX")) {
-          // 體驗版：僅在本機端模擬延遲更新
           await new Promise(resolve => setTimeout(resolve, 1200));
         } else {
-          // 實際送出 POST 請求給 GAS API
           const response = await fetch(GAS_API_URL, {
             method: "POST",
             body: JSON.stringify(payload)
@@ -1119,22 +1080,25 @@
         }
 
         playBeep(true);
-        showAlert("存檔並回填成功！", `包裹 ${currentParcel.trackingNo} 已完成清點，已即時換算實收數量並寫入 Google Sheets 的對應欄位！`, "success");
+        showAlert("存檔並回填成功！", `包裹 ${currentParcel.trackingNo} 已完成清點！已將例外清點資料即時寫入 Google Sheets 對應的各列欄位中！`, "success");
 
-        // 同步本地快取陣列狀態，以利在 App 上即時觀看清點歷史
+        // 同步本地快取狀態
         const localIdx = parcelsData.findIndex(p => p.trackingNo === currentParcel.trackingNo);
         if (localIdx !== -1) {
-          parcelsData[localIdx].status = (payload.status === "Matched") ? "已清點-完全相符" : "已清點-數量不符";
+          parcelsData[localIdx].status = hasAnyException ? "已清點-數量不符" : "已清點-完全相符";
           parcelsData[localIdx].notes = payload.notes;
-          currentParcel.items.forEach(cItem => {
-            const originItem = parcelsData[localIdx].items.find(i => i.rowNum === cItem.rowNum); // 精確用 rowNum 更新
-            if (originItem) originItem.receivedQty = cItem.expectedQty - (cItem.problemQty || 0);
+          computedItems.forEach(cItem => {
+            const originItem = parcelsData[localIdx].items.find(i => i.rowNum === cItem.rowNum);
+            if (originItem) {
+              originItem.receivedQty = cItem.computedRealQty;
+              originItem.status = cItem.computedStatus;
+            }
           });
         }
 
-        addHistoryRow(payload.trackingNo, payload.status, payload.notes);
+        addHistoryRow(payload.trackingNo, finalParcelStatus, payload.notes);
         
-        // 重置 UI 
+        // 重置 UI
         document.getElementById('manual-tracking').value = ""; 
         closeCheckPanel();
         updateDashboardAndSimulator();
