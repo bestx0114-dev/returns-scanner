@@ -598,7 +598,28 @@
       });
     }
 
-    // 控制條碼相機
+    function setCameraMode(mode) {
+      if (activeCameraMode === mode && isCameraScanning) return;
+      activeCameraMode = mode;
+
+      const btnBarcode = document.getElementById('cam-mode-barcode');
+      const btnQrcode = document.getElementById('cam-mode-qrcode');
+
+      if (mode === "barcode") {
+        btnBarcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition bg-indigo-600 text-white shadow";
+        btnQrcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition text-gray-400 hover:text-white";
+      } else {
+        btnBarcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition text-gray-400 hover:text-white";
+        btnQrcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition bg-indigo-600 text-white shadow";
+      }
+
+      if (isCameraScanning) {
+        toggleCamera(false).then(() => {
+          toggleCamera(true);
+        });
+      }
+    }
+
     async function toggleCamera(show) {
       const camBox = document.getElementById('camera-box');
       if (show) {
@@ -844,7 +865,7 @@
       }
     }
 
-    // 自動判斷清點狀態
+    // 修正後的自動判斷清點狀態函數（不再嘗試存取已移除的 panel-status-select 元素）
     function checkAndAutoSelectStatus() {
       let hasException = false;
       currentParcel.items.forEach(item => {
@@ -853,23 +874,20 @@
         }
       });
 
-      const selectStatus = document.getElementById('panel-status-select');
-      if (!hasException) {
-        selectStatus.value = "Matched";
-        document.getElementById('ai-draft-box').classList.add('hidden');
-      } else {
-        selectStatus.value = "Discrepancy";
-        document.getElementById('ai-draft-box').classList.remove('hidden');
+      // 安全地控制 AI 協商草稿區塊的顯示與隱藏
+      const aiDraftBox = document.getElementById('ai-draft-box');
+      if (aiDraftBox) {
+        if (!hasException) {
+          aiDraftBox.classList.add('hidden');
+        } else {
+          aiDraftBox.classList.remove('hidden');
+        }
       }
     }
 
     function handleStatusChange() {
-      const val = document.getElementById('panel-status-select').value;
-      if (val === "Discrepancy") {
-        document.getElementById('ai-draft-box').classList.remove('hidden');
-      } else {
-        document.getElementById('ai-draft-box').classList.add('hidden');
-      }
+      // 由於 UI 上已移除了 panel-status-select 元素，此函數僅作安全保留以防遺留事件參照
+      console.log("Status selection changed internally.");
     }
 
     // 11. 呼叫 Gemini AI 文字生成協商與申訴草稿
