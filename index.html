@@ -40,7 +40,7 @@
     }
   </style>
 </head>
-<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col font-sans">
+<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col font-sans p-0 m-0">
 
   <script>
     // 已為您保留並填入您專屬且已開通權限的 GAS 網址
@@ -56,7 +56,7 @@
       </div>
       <div>
         <h1 class="text-sm font-bold tracking-wider text-white">ReturnScanner</h1>
-        <p class="text-[10px] text-gray-400">退貨智能核對系統 v3.6</p>
+        <p class="text-[10px] text-gray-400">退貨智能核對系統 v3.7</p>
       </div>
     </div>
     <div id="sync-status" class="flex items-center space-x-1.5 text-xs text-yellow-500 bg-yellow-500/10 px-2.5 py-1 rounded-full border border-yellow-500/20 cursor-pointer">
@@ -96,15 +96,15 @@
       </div>
     </section>
 
-    <!-- 2. 包裹單號掃描與輸入區 -->
+    <!-- 2. 【核心工作區：最上方】包裹單號掃描與輸入區 -->
     <section id="scanner-section" class="bg-gray-900 rounded-2xl border border-gray-800 p-4 mb-5 shadow">
       <h2 class="text-xs font-bold text-gray-300 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
         <i data-lucide="scan-barcode" class="w-4 h-4 text-indigo-400"></i>
-        第一步：掃描包裹寄件單號
+        第一步：掃描包裹寄件單號 (支援條碼與 QR Code)
       </h2>
       
-      <!-- 相機掃描視窗 -->
-      <div id="camera-box" class="hidden mb-3 bg-black rounded-xl overflow-hidden border border-gray-700 relative aspect-video shadow-inner">
+      <!-- 相機掃描視窗 (優化為正方形，可同時相容 Barcode 與 QR Code) -->
+      <div id="camera-box" class="hidden mb-3 bg-black rounded-xl overflow-hidden border border-gray-700 relative aspect-square shadow-inner">
         <div id="interactive-reader" class="w-full h-full"></div>
         <button onclick="toggleCamera(false)" class="absolute top-2 right-2 bg-red-600/80 hover:bg-red-700 text-white p-1.5 rounded-full z-10 transition">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -127,48 +127,7 @@
       </div>
     </section>
 
-    <!-- 3. 包裹列表與搜尋面板 (限高、搜尋、分類) -->
-    <section id="simulator-section" class="bg-gray-900 rounded-2xl border border-gray-800 p-4 mb-5 shadow">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-xs font-bold text-gray-300 flex items-center gap-1.5 uppercase tracking-wider">
-          <i data-lucide="list-todo" class="w-4 h-4 text-indigo-400"></i>
-          退貨包裹清單 (<span id="filtered-count" class="font-bold text-indigo-400">0</span> 筆)
-        </h3>
-      </div>
-
-      <!-- 搜尋與過濾控制區 -->
-      <div class="space-y-2 mb-3">
-        <!-- 清單內部搜尋框 -->
-        <div class="relative flex items-center">
-          <input type="text" id="list-search-input" oninput="filterParcels()" placeholder="快速搜尋清單中的單號或訂單..." class="w-full bg-gray-850 border border-gray-700 rounded-lg py-2 pl-9 pr-4 text-xs text-white focus:outline-none focus:border-indigo-500 select-text">
-          <i data-lucide="filter" class="absolute left-3 w-3.5 h-3.5 text-gray-400"></i>
-          <!-- 清除搜尋按鈕 -->
-          <button onclick="clearListSearch()" class="absolute right-2.5 text-gray-500 hover:text-gray-300">
-            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
-
-        <!-- 狀態篩選頁籤 (Tabs) -->
-        <div class="grid grid-cols-3 gap-1 bg-gray-950 p-1 rounded-lg border border-gray-800">
-          <button id="tab-pending" onclick="switchTab('Pending')" class="text-[11px] font-bold py-1.5 rounded-md text-center transition bg-indigo-600 text-white shadow">
-            未清點
-          </button>
-          <button id="tab-done" onclick="switchTab('Done')" class="text-[11px] font-bold py-1.5 rounded-md text-center transition text-gray-400 hover:text-white">
-            已清點
-          </button>
-          <button id="tab-all" onclick="switchTab('All')" class="text-[11px] font-bold py-1.5 rounded-md text-center transition text-gray-400 hover:text-white">
-            全部
-          </button>
-        </div>
-      </div>
-
-      <!-- 包裹容器 (限高、滾動，避免拉長頁面) -->
-      <div id="simulated-parcels" class="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
-        <p class="text-xs text-gray-500 italic text-center py-4">正在自 Google 試算表載入資料，請稍候...</p>
-      </div>
-    </section>
-
-    <!-- 4. 清點核對工作區 (點選包裹後展開) -->
+    <!-- 3. 【清點核對工作區：中間】(點選/掃描包裹後展開，最核心的位置) -->
     <section id="check-panel" class="hidden bg-gray-900 rounded-2xl border border-gray-800 p-4 mb-5 shadow-2xl transition-all duration-300">
       <!-- 頂部包裹資訊 -->
       <div class="flex items-start justify-between border-b border-gray-800 pb-3 mb-4">
@@ -201,7 +160,7 @@
           退貨商品清單 (<span id="panel-items-count">0</span>)
         </h3>
         <p class="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg leading-relaxed">
-          💡 <b>例外清點法已啟用</b>：系統預設所有退回商品數量與包裝皆為「正常」。若發現數量短缺、漏寄或破損，請手動增加下方商品的「異常數量」並輸入個別原因。
+          💡 <b>例外清點法已啟用</b>：系統預設退回數量「正常」。若發現短缺、漏寄或破損，請手動增加商品的「異常數量」並輸入原因。
         </p>
         <div id="panel-items-list" class="space-y-3">
           <!-- 商品項目會動態插入於此 -->
@@ -237,31 +196,15 @@
           <textarea id="panel-staff-notes" placeholder="總清點備註（例如：外箱破損、已拍拆箱影片存證...）" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none select-text"></textarea>
         </div>
 
-        <!-- Gemini AI 影像判損模組 -->
-        <div class="bg-indigo-950/20 border border-indigo-900/30 rounded-xl p-3">
+        <!-- Gemini AI 影像判損模組 (暫時隱藏，依據需求關閉) -->
+        <div class="hidden bg-indigo-950/20 border border-indigo-900/30 rounded-xl p-3">
           <p class="text-xs font-bold text-indigo-300 flex items-center gap-1.5 mb-2">
             <i data-lucide="cpu" class="w-4 h-4 text-indigo-400"></i>
-            Gemini AI 影像損壞判讀
+            Gemini AI 影像損壞判讀 (目前關閉中)
           </p>
-          <div class="flex gap-2">
-            <button onclick="generateSimulatedBox()" class="flex-1 bg-indigo-900/40 hover:bg-indigo-900/60 text-indigo-200 border border-indigo-800/50 py-2 px-3 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5">
-              <i data-lucide="image" class="w-3.5 h-3.5"></i>
-              模擬生成損壞照片
-            </button>
-            <button id="btn-ai-analyze" onclick="analyzeDamageWithAI()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-3 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5 shadow" disabled>
-              <i data-lucide="search-code" class="w-3.5 h-3.5"></i>
-              AI 智能分析
-            </button>
-          </div>
-          
-          <div class="mt-3 hidden" id="ai-canvas-area">
-            <canvas id="damage-canvas" width="300" height="150" class="w-full rounded-lg bg-black border border-gray-800"></canvas>
-            <p class="text-[10px] text-gray-500 text-center mt-1">此為 Canvas 自動生成的「帶有條碼與撕裂破損的牛皮紙箱」模擬圖</p>
-          </div>
-          <div id="ai-analysis-output" class="mt-2 text-xs text-gray-300 bg-black/40 p-2.5 rounded-lg border border-gray-800 hidden select-text"></div>
         </div>
 
-        <!-- Gemini AI 退貨爭議協商草稿生成器 -->
+        <!-- Gemini AI 退貨爭議協商草稿生成器 (當有登記商品異常時才會自動展開) -->
         <div id="ai-draft-box" class="bg-purple-950/20 border border-purple-900/30 rounded-xl p-3 hidden">
           <p class="text-xs font-bold text-purple-300 flex items-center gap-1.5 mb-2">
             <i data-lucide="sparkles" class="w-4 h-4 text-purple-400 animate-pulse"></i>
@@ -303,8 +246,8 @@
       </button>
     </section>
 
-    <!-- 5. 今日已完成記錄列表 -->
-    <section class="bg-gray-900 rounded-2xl border border-gray-800 p-4 shadow">
+    <!-- 5. 今日已完成記錄列表 (常駐於下部) -->
+    <section class="bg-gray-900 rounded-2xl border border-gray-800 p-4 shadow mb-5">
       <h2 class="text-xs font-bold text-gray-300 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
         <i data-lucide="history" class="w-4 h-4 text-emerald-400"></i>
         今日清點歷史記錄
@@ -324,6 +267,47 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </section>
+
+    <!-- 6. 【包裹列表與搜尋面板：移至最下方】 (平時操作掃描不需看，避免畫面過長，真正有需要才滑至底部對照) -->
+    <section id="simulator-section" class="bg-gray-900 rounded-2xl border border-gray-800 p-4 shadow">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-xs font-bold text-gray-300 flex items-center gap-1.5 uppercase tracking-wider">
+          <i data-lucide="list-todo" class="w-4 h-4 text-indigo-400"></i>
+          退貨包裹清單對照庫 (<span id="filtered-count" class="font-bold text-indigo-400">0</span> 筆)
+        </h3>
+      </div>
+
+      <!-- 搜尋與過濾控制區 -->
+      <div class="space-y-2 mb-3">
+        <!-- 清單內部搜尋框 -->
+        <div class="relative flex items-center">
+          <input type="text" id="list-search-input" oninput="filterParcels()" placeholder="快速搜尋單號或平台訂單..." class="w-full bg-gray-850 border border-gray-700 rounded-lg py-2 pl-9 pr-4 text-xs text-white focus:outline-none focus:border-indigo-500 select-text">
+          <i data-lucide="filter" class="absolute left-3 w-3.5 h-3.5 text-gray-400"></i>
+          <!-- 清除搜尋按鈕 -->
+          <button onclick="clearListSearch()" class="absolute right-2.5 text-gray-500 hover:text-gray-300">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- 狀態篩選頁籤 (Tabs) -->
+        <div class="grid grid-cols-3 gap-1 bg-gray-950 p-1 rounded-lg border border-gray-800">
+          <button id="tab-pending" onclick="switchTab('Pending')" class="text-[11px] font-bold py-1.5 rounded-md text-center transition bg-indigo-600 text-white shadow">
+            未清點
+          </button>
+          <button id="tab-done" onclick="switchTab('Done')" class="text-[11px] font-bold py-1.5 rounded-md text-center transition text-gray-400 hover:text-white">
+            已清點
+          </button>
+          <button id="tab-all" onclick="switchTab('All')" class="text-[11px] font-bold py-1.5 rounded-md text-center transition text-gray-400 hover:text-white">
+            全部
+          </button>
+        </div>
+      </div>
+
+      <!-- 包裹容器 (限高 300px 防止拉太長) -->
+      <div id="simulated-parcels" class="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+        <p class="text-xs text-gray-500 italic text-center py-4">正在自 Google 試算表載入資料，請稍候...</p>
       </div>
     </section>
 
@@ -615,7 +599,7 @@
 
       // 2. 渲染清單
       filtered.forEach(p => {
-        let badgeColor = "bg-gray-800 text-gray-400 border border-gray-700/50";
+        let badgeColor = "bg-gray-850 text-gray-400 border border-gray-700/50";
         if (p.status.includes("完全相符")) badgeColor = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
         if (p.status.includes("數量不符")) badgeColor = "bg-rose-500/10 text-rose-400 border border-rose-500/20";
         
@@ -637,7 +621,7 @@
       });
     }
 
-    // 4. 控制條碼掃描相機 (重大優化：異步 stop 相機，確實釋放控制權)
+    // 4. 控制條碼掃描相機 (重大優化：支援一維條碼與二維 QR Code 雙向極速偵測)
     async function toggleCamera(show) {
       const camBox = document.getElementById('camera-box');
       if (show) {
@@ -663,7 +647,14 @@
         html5QrcodeScanner = new Html5Qrcode("interactive-reader");
       }
       
-      const config = { fps: 15, qrbox: { width: 250, height: 120 } };
+      // 🎯 優化偵測參數：採用正方形的 qrbox，並開啟所有解碼格式以同時順暢讀取 Barcode與 QR Code
+      const config = { 
+        fps: 20, 
+        qrbox: (width, height) => {
+          const size = Math.min(width, height) * 0.75;
+          return { width: size, height: size }; // 正方形視窗，最佳化二維/一維讀取率
+        }
+      };
       
       html5QrcodeScanner.start(
         { facingMode: "environment" }, 
@@ -730,17 +721,16 @@
       const selectStatus = document.getElementById('panel-status-select');
       selectStatus.value = currentParcel.status.includes("數量不符") ? "Discrepancy" : "Matched";
 
-      // 重置 AI 區塊
-      document.getElementById('ai-canvas-area').classList.add('hidden');
-      document.getElementById('ai-analysis-output').classList.add('hidden');
+      // 重置 AI 區塊 (保持隱藏)
       document.getElementById('ai-draft-box').classList.add('hidden');
       document.getElementById('drafts-result').classList.add('hidden');
-      document.getElementById('btn-ai-analyze').setAttribute('disabled', 'true');
 
       renderCheckingItems();
       
       const checkPanel = document.getElementById('check-panel');
       checkPanel.classList.remove('hidden');
+      
+      // 核對面板展開時，平滑滾動到面板位置，確保核心工作區呈現在最上方
       checkPanel.scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -752,7 +742,7 @@
       currentParcel.items.forEach((item, index) => {
         const hasProblem = (item.problemQty || 0) > 0;
         
-        // 有異常用醒目紅色，無異常（完美狀態）用安心的綠色
+        // 有異常用醒目紅色，無異常（預設完美狀態）用翠綠色
         const cardBorder = hasProblem 
           ? "border-rose-500/40 bg-rose-500/10 shadow-lg shadow-rose-950/20" 
           : "border-emerald-500/30 bg-emerald-500/5";
@@ -782,7 +772,7 @@
           
           <div class="flex items-center justify-between border-t border-gray-800/40 pt-2.5">
             <div class="text-[11px] text-gray-400">
-              應退回數量: <span class="font-bold text-white">${item.expectedQty}</span> 件
+              應退數量: <span class="font-bold text-white">${item.expectedQty}</span> 件
             </div>
             
             <div class="flex items-center space-x-3">
@@ -797,7 +787,7 @@
           ${hasProblem ? `
             <div class="mt-2 pt-2 border-t border-rose-900/20">
               <input type="text" 
-                     placeholder="請輸入此商品的異常備註 (例如: 破損、寄錯、少寄)..." 
+                     placeholder="請輸入此商品的異常原因 (例如: 破損、少退 1 件)..." 
                      class="w-full bg-gray-950 border border-rose-900/30 rounded-lg p-2 text-[11px] text-gray-200 placeholder-rose-700/60 focus:outline-none focus:border-rose-500 select-text"
                      value="${item.itemNote || ''}" 
                      oninput="updateItemNote(${index}, this.value)">
@@ -836,7 +826,7 @@
       playBeep(true);
     }
 
-    // 9. 條碼槍比對邏輯：比對商品條碼是否確實在清單內 (不主動增加數量，因為例外清點下預設即為相符)
+    // 9. 條碼槍比對邏輯：比對商品條碼是否確實在清單內 (例外清點下不自動加收，避免增加混亂)
     function handleSimProductScan() {
       const barcodeInput = document.getElementById('sim-product-barcode');
       const scanCode = barcodeInput.value.trim();
@@ -849,7 +839,7 @@
         playBeep(true);
         showAlert(
           "比對正確 ✅", 
-          `商品 [${scanCode}] 確實屬於該包裹退貨明細中！\n系統預設為「正常無異常」。若此商品有破損或少寄，請直接點擊商品下方的「+」按鈕登載異常！`, 
+          `商品 [${scanCode}] 確實屬於該包裹退貨明細中！\n系統預設狀態為「正常」。若商品有短缺或損壞，請手動點擊該商品的「+」記錄異常數量。`, 
           "success"
         );
         barcodeInput.value = "";
@@ -913,155 +903,6 @@
       throw new Error("超過最大重試次數，API 連線失敗");
     }
 
-    // 10. 模擬生成破損紙箱
-    function generateSimulatedBox() {
-      const canvasArea = document.getElementById('ai-canvas-area');
-      canvasArea.classList.remove('hidden');
-      
-      const canvas = document.getElementById('damage-canvas');
-      const ctx = canvas.getContext('2d');
-      
-      // 紙箱本體
-      ctx.fillStyle = '#b48a53'; 
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // 折線與暗角
-      ctx.strokeStyle = '#8c6533';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(0, 50); ctx.lineTo(300, 50);
-      ctx.moveTo(150, 50); ctx.lineTo(150, 150);
-      ctx.stroke();
-
-      // 物流單貼紙
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(20, 15, 80, 50);
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(25, 20, 70, 3);
-      ctx.fillRect(25, 26, 70, 5);
-      ctx.fillRect(25, 34, 70, 2);
-      ctx.fillStyle = '#333333';
-      ctx.font = '7px Arial';
-      ctx.fillText(currentParcel ? currentParcel.trackingNo : "DEMO-TW77823", 25, 48);
-
-      // 繪製破損大凹洞
-      ctx.fillStyle = '#523a1a'; 
-      ctx.beginPath();
-      ctx.moveTo(110, 80);
-      ctx.lineTo(140, 70);
-      ctx.lineTo(165, 95);
-      ctx.lineTo(130, 115);
-      ctx.lineTo(95, 95);
-      ctx.closePath();
-      ctx.fill();
-
-      // 撕裂邊緣
-      ctx.strokeStyle = '#e3cfb8';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(110, 80); ctx.lineTo(140, 70); ctx.lineTo(165, 95); ctx.lineTo(130, 115); ctx.lineTo(95, 95); ctx.closePath();
-      ctx.stroke();
-
-      // 水漬
-      ctx.fillStyle = 'rgba(70, 50, 30, 0.4)';
-      ctx.beginPath();
-      ctx.arc(220, 100, 25, 0, Math.PI * 2);
-      ctx.fill();
-
-      document.getElementById('btn-ai-analyze').removeAttribute('disabled');
-      showAlert("照片模擬成功", "已在 Canvas 畫布中模擬生成一張退貨紙箱照片。請點擊「AI 智能分析」發送分析請求！", "success");
-    }
-
-    // 11. 呼叫 Gemini AI 影像判讀 (gemini-2.5-flash-image-preview)
-    async function analyzeDamageWithAI() {
-      const btn = document.getElementById('btn-ai-analyze');
-      const outputEl = document.getElementById('ai-analysis-output');
-      
-      btn.setAttribute('disabled', 'true');
-      outputEl.classList.remove('hidden');
-      outputEl.innerHTML = `
-        <div class="flex items-center gap-2 text-indigo-400">
-          <span class="w-3.5 h-3.5 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin"></span>
-          <span>Gemini AI 正在判讀照片損壞狀態...</span>
-        </div>
-      `;
-
-      const canvas = document.getElementById('damage-canvas');
-      const base64Image = canvas.toDataURL('image/png').split(',')[1];
-
-      const prompt = `你是一個專業的網購電商網拍售後清點人員。請仔細看這張退貨包裹包裝的外觀照片：
-      1. 判讀該紙箱外包裝是否存在破損、擠壓、水漬或拆封痕跡。
-      2. 請以繁體中文 (台灣，例如「外包裝嚴重凹損」、「外箱撕裂」) 總結破損狀態。
-      3. 給出你判讀該外箱破損的信心指數 (0 到 100%)。
-      4. 推薦一個最適合的異常理由（如「包裝嚴重損毀」或「商品破損」）。
-      
-      請嚴格以結構化 JSON 格式輸出，不得夾帶任何額外贅字。格式範例：
-      {
-        "has_damage": true,
-        "damage_description": "紙箱正中央有大面積凹折破洞，且有明顯液體滲漏水漬痕跡。",
-        "confidence_score": 95,
-        "recommended_reason": "外包裝損毀導致商品受損"
-      }`;
-
-      const apiURL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
-      const payload = {
-        contents: [{
-          role: "user",
-          parts: [
-            { text: prompt },
-            { inlineData: { mimeType: "image/png", data: base64Image } }
-          ]
-        }],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "OBJECT",
-            properties: {
-              has_damage: { type: "BOOLEAN" },
-              damage_description: { type: "STRING" },
-              confidence_score: { type: "INTEGER" },
-              recommended_reason: { type: "STRING" }
-            },
-            required: ["has_damage", "damage_description", "confidence_score", "recommended_reason"]
-          }
-        }
-      };
-
-      try {
-        const resultData = await callGeminiAPIWithRetry(apiURL, payload);
-        const jsonText = resultData.candidates?.[0]?.content?.parts?.[0]?.text;
-        const result = JSON.parse(jsonText);
-
-        outputEl.innerHTML = `
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between border-b border-gray-800 pb-1.5 mb-1.5">
-              <span class="text-xs font-bold text-rose-400">🚨 AI 包裹異常分析報告</span>
-              <span class="text-[10px] bg-indigo-500/10 text-indigo-300 px-1.5 py-0.5 rounded font-bold">信心指數: ${result.confidence_score}%</span>
-            </div>
-            <p class="text-xs text-gray-300"><strong class="text-gray-400">損壞狀況：</strong>${result.damage_description}</p>
-            <p class="text-xs text-gray-300"><strong class="text-gray-400">推薦歸因：</strong>${result.recommended_reason}</p>
-          </div>
-        `;
-
-        // 自動標記為異常，並寫入 AI 分析結果
-        document.getElementById('panel-status-select').value = "Discrepancy";
-        document.getElementById('panel-staff-notes').value = `[AI 包裹檢測] 破損狀況: ${result.damage_description} (推薦異常理由: ${result.recommended_reason})`;
-        handleStatusChange();
-
-      } catch (err) {
-        console.error(err);
-        outputEl.innerHTML = `
-          <div class="text-xs text-rose-400 py-1 flex items-center gap-1.5">
-            <i data-lucide="x-circle" class="w-4 h-4"></i>
-            <span>AI 分析失敗，請稍候再試。</span>
-          </div>
-        `;
-        lucide.createIcons();
-      } finally {
-        btn.removeAttribute('disabled');
-      }
-    }
-
     // 11. 呼叫 Gemini AI 文字生成協商與申訴草稿 (gemini-2.5-flash-preview-09-2025)
     async function generateAIDrafts() {
       if (!currentParcel) return;
@@ -1080,7 +921,7 @@
       let discrepancyDetails = "";
       currentParcel.items.forEach(item => {
         if ((item.problemQty || 0) > 0) {
-          discrepancyDetails += `- 商品: ${item.name} (代號: ${item.sku})：買家申請 ${item.expectedQty} 件，我們實際收到 ${item.expectedQty - item.problemQty} 件（其中有 ${item.problemQty} 件異常，原因為: ${item.itemNote || '未備註'}）。\n`;
+          discrepancyDetails += `- 商品: ${item.name} (代號: ${item.sku})：買家退回申請 ${item.expectedQty} 件，我們實際收到 ${item.expectedQty - item.problemQty} 件（其中有 ${item.problemQty} 件異常，原因為: ${item.itemNote || '未備註'}）。\n`;
         }
       });
 
