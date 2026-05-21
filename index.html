@@ -80,7 +80,7 @@
       </div>
     </div>
 
-    <!-- 1. 當日處理狀態儀表板 (已加入手動修改「今日退貨」功能) -->
+    <!-- 1. 當日處理狀態儀表板 (支援手動更正總量) -->
     <section class="grid grid-cols-3 gap-3 mb-5">
       <div onclick="modifyTotalReturns()" class="bg-gray-900 p-3 rounded-xl border border-indigo-500/30 text-center shadow cursor-pointer hover:bg-gray-850 active:scale-95 transition group">
         <p class="text-[11px] text-gray-400 mb-0.5 flex items-center justify-center gap-1 group-hover:text-indigo-400">
@@ -109,15 +109,15 @@
       <div id="camera-box" class="hidden mb-3 bg-black rounded-xl overflow-hidden border border-gray-700 relative flex flex-col shadow-inner">
         <!-- 條碼模式切換器 -->
         <div class="grid grid-cols-2 gap-1 bg-gray-900 p-1 border-b border-gray-800">
-          <button id="cam-mode-barcode" onclick="setCameraMode('barcode')" class="text-[10px] font-bold py-1 rounded text-center transition bg-indigo-600 text-white shadow">
-            一維條碼 (長形)
+          <button id="cam-mode-barcode" onclick="setCameraMode('barcode')" class="text-[10px] font-bold py-1.5 rounded text-center transition bg-indigo-600 text-white shadow">
+            一維條碼 (長形物流單號)
           </button>
-          <button id="cam-mode-qrcode" onclick="setCameraMode('qrcode')" class="text-[10px] font-bold py-1 rounded text-center transition text-gray-400 hover:text-white">
+          <button id="cam-mode-qrcode" onclick="setCameraMode('qrcode')" class="text-[10px] font-bold py-1.5 rounded text-center transition text-gray-400 hover:text-white">
             二維條碼 (QR Code)
           </button>
         </div>
         <div id="interactive-reader" class="w-full aspect-square bg-black"></div>
-        <button onclick="toggleCamera(false)" class="absolute top-12 right-2 bg-red-600/80 hover:bg-red-700 text-white p-1.5 rounded-full z-10 transition">
+        <button onclick="toggleCamera(false)" class="absolute top-14 right-2 bg-red-600/80 hover:bg-red-700 text-white p-1.5 rounded-full z-10 transition">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
@@ -525,20 +525,18 @@
       updateDashboardAndSimulator();
     }
 
-    // 3. 更新儀表板數據與包裹清單 (支援使用者手動修改「今日退貨」總數)
+    // 3. 更新儀表板數據與包裹清單
     function updateDashboardAndSimulator() {
       const totalFromSheets = parcelsData.length;
       const done = parcelsData.filter(p => p.status.includes("已清點")).length;
       const fail = parcelsData.filter(p => p.status.includes("數量不符") || p.status.includes("Discrepancy")).length;
 
-      // 決定今日退貨顯示邏輯：如果有手動設定過，使用手動設定的；否則預設使用試算表的總數
       const displayTotal = (userCustomTotalReturns !== null) ? userCustomTotalReturns : totalFromSheets;
 
       document.getElementById('stat-total').innerText = displayTotal;
       document.getElementById('stat-done').innerText = done;
       document.getElementById('stat-fail').innerText = fail;
 
-      // 觸發一次列表篩選與渲染
       filterParcels();
     }
 
@@ -562,7 +560,6 @@
     function switchTab(tab) {
       currentFilterTab = tab;
       
-      // 更新按鈕樣式
       const tabs = ['Pending', 'Done', 'All'];
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-${t.toLowerCase()}`);
@@ -588,21 +585,18 @@
       const simContainer = document.getElementById('simulated-parcels');
       simContainer.innerHTML = "";
 
-      // 1. 篩選資料
       const filtered = parcelsData.filter(p => {
-        // 頁籤過濾
         let isTabMatch = false;
         const hasChecked = p.status.includes("已清點") || p.status !== "Pending";
         
         if (currentFilterTab === "Pending") {
-          isTabMatch = !hasChecked; // 顯示未清點
+          isTabMatch = !hasChecked; 
         } else if (currentFilterTab === "Done") {
-          isTabMatch = hasChecked;  // 顯示已清點
+          isTabMatch = hasChecked;  
         } else {
-          isTabMatch = true;        // 顯示全部
+          isTabMatch = true;        
         }
 
-        // 關鍵字過濾 (單號、訂單編號、買家編號)
         let isKeywordMatch = true;
         if (searchKeyword) {
           isKeywordMatch = p.trackingNo.toLowerCase().includes(searchKeyword) || 
@@ -613,7 +607,6 @@
         return isTabMatch && isKeywordMatch;
       });
 
-      // 更新過濾後的筆數顯示
       document.getElementById('filtered-count').innerText = filtered.length;
 
       if (filtered.length === 0) {
@@ -621,9 +614,8 @@
         return;
       }
 
-      // 2. 渲染清單
       filtered.forEach(p => {
-        let badgeColor = "bg-gray-850 text-gray-400 border border-gray-700/50";
+        let badgeColor = "bg-gray-855 text-gray-400 border border-gray-700/50";
         if (p.status.includes("完全相符")) badgeColor = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
         if (p.status.includes("數量不符")) badgeColor = "bg-rose-500/10 text-rose-400 border border-rose-500/20";
         
@@ -645,24 +637,22 @@
       });
     }
 
-    // 切換相機掃描模式 (優化一維條碼/QR Code 讀取難易度)
+    // 切換相機掃描模式
     function setCameraMode(mode) {
       if (activeCameraMode === mode && isCameraScanning) return;
       activeCameraMode = mode;
 
-      // 更新按鈕樣式
       const btnBarcode = document.getElementById('cam-mode-barcode');
       const btnQrcode = document.getElementById('cam-mode-qrcode');
 
       if (mode === "barcode") {
-        btnBarcode.className = "text-[10px] font-bold py-1 rounded text-center transition bg-indigo-600 text-white shadow";
-        btnQrcode.className = "text-[10px] font-bold py-1 rounded text-center transition text-gray-400 hover:text-white";
+        btnBarcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition bg-indigo-600 text-white shadow";
+        btnQrcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition text-gray-400 hover:text-white";
       } else {
-        btnBarcode.className = "text-[10px] font-bold py-1 rounded text-center transition text-gray-400 hover:text-white";
-        btnQrcode.className = "text-[10px] font-bold py-1 rounded text-center transition bg-indigo-600 text-white shadow";
+        btnBarcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition text-gray-400 hover:text-white";
+        btnQrcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition bg-indigo-600 text-white shadow";
       }
 
-      // 如果相機正開啟中，重啟相機以套用新鏡頭模式
       if (isCameraScanning) {
         toggleCamera(false).then(() => {
           toggleCamera(true);
@@ -670,7 +660,7 @@
       }
     }
 
-    // 4. 控制條碼掃描相機
+    // 4. 控制條碼掃描相機 (重大技術升級：要求 Full HD/HD 解析度解決一維英文細線條碼對焦問題)
     async function toggleCamera(show) {
       const camBox = document.getElementById('camera-box');
       if (show) {
@@ -695,18 +685,32 @@
         html5QrcodeScanner = new Html5Qrcode("interactive-reader");
       }
       
-      // 🎯 重大優化一維條碼讀取率：一維條碼需要寬大、矮高的橫長框，否則讀不到！
-      let config = { fps: 20 };
+      // 🎯 重大解析度提升：請求 Full HD (1080P) 或 HD (720P) 解析度，防止英數混雜細小線條模糊
+      const config = { 
+        fps: 25,
+        videoConstraints: {
+          facingMode: "environment",
+          width: { ideal: 1920, min: 1280 },
+          height: { ideal: 1080, min: 720 }
+        }
+      };
       
       if (activeCameraMode === "barcode") {
-        // Barcode 專用橫長聚焦視窗 (顯著提升一維條碼讀取率與對焦效率)
+        // 🎯 寬大且扁的物流條碼專用對焦框 (寬度 90% 螢幕，避免長條英文條碼兩端被切斷)
         config.qrbox = (width, height) => {
-          return { width: Math.min(width * 0.85, 300), height: 120 };
+          const qrWidth = Math.min(width * 0.90, 450);
+          return { width: qrWidth, height: 100 };
         };
-        // 專注讀取一維條碼
-        config.formatsToSupport = [ Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.CODE_39 ];
+        // 強制鎖定一維條碼最核心物流協議，不浪費效能
+        config.formatsToSupport = [
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.CODE_93,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.ITF
+        ];
       } else {
-        // QR Code 專用正方形大視窗
+        // QR Code 專用正方形對焦框
         config.qrbox = (width, height) => {
           const size = Math.min(width, height) * 0.75;
           return { width: size, height: size };
@@ -743,7 +747,7 @@
       loadParcelForChecking(query);
     }
 
-    // 6. 載入包裹清點面板
+    // 6. 載入包裹清點面板 (例外清點)
     function loadParcelForChecking(trackingNo) {
       const parcel = parcelsData.find(p => p.trackingNo.toLowerCase() === trackingNo.toLowerCase().trim());
       if (!parcel) {
@@ -794,7 +798,6 @@
       currentParcel.items.forEach((item, index) => {
         const hasProblem = (item.problemQty || 0) > 0;
         
-        // 有異常用醒目紅色，無異常用翠綠色
         const cardBorder = hasProblem 
           ? "border-rose-500/40 bg-rose-500/10 shadow-lg shadow-rose-950/20" 
           : "border-emerald-500/30 bg-emerald-500/5";
@@ -815,7 +818,6 @@
                 <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeColor}">
                   ${hasProblem ? '🚨 商品異常' : '✅ 正常相符'}
                 </span>
-                <!-- 🎯 加入列號提示：方便工作人員核對，同時前端可精確抓取 -->
                 <span class="text-[9px] text-gray-500 font-mono">Row: ${item.rowNum}</span>
               </div>
               <h4 class="text-xs font-bold text-white mt-2 select-text">${item.name}</h4>
@@ -1075,7 +1077,7 @@
         正在儲存並即時回填 Google 試算表中...
       `;
 
-      // 1. 自動彙整每個商品的個別備註 (包含精準列號 Row 提示)
+      // 1. 自動彙整每個商品的個別備註
       let itemExceptionsSummary = "";
       currentParcel.items.forEach(item => {
         if ((item.problemQty || 0) > 0) {
@@ -1096,7 +1098,7 @@
         notes: finalStaffNotes, // 將明細備註寫回 O 欄 (清點人員備註)
         items: currentParcel.items.map(item => ({
           sku: item.sku,
-          rowNum: item.rowNum, // 🎯 絕對橫列號：核心防呆機制
+          rowNum: item.rowNum, // 絕對橫列號：核心防呆機制
           // 回傳 N 欄 (實際收到數量) = 應退數量 - 異常數量
           receivedQty: item.expectedQty - (item.problemQty || 0) 
         }))
