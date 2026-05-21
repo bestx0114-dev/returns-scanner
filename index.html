@@ -519,6 +519,7 @@
       }
     }
 
+    // 頁籤篩選邏輯
     function switchTab(tab) {
       currentFilterTab = tab;
       
@@ -597,28 +598,7 @@
       });
     }
 
-    function setCameraMode(mode) {
-      if (activeCameraMode === mode && isCameraScanning) return;
-      activeCameraMode = mode;
-
-      const btnBarcode = document.getElementById('cam-mode-barcode');
-      const btnQrcode = document.getElementById('cam-mode-qrcode');
-
-      if (mode === "barcode") {
-        btnBarcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition bg-indigo-600 text-white shadow";
-        btnQrcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition text-gray-400 hover:text-white";
-      } else {
-        btnBarcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition text-gray-400 hover:text-white";
-        btnQrcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition bg-indigo-600 text-white shadow";
-      }
-
-      if (isCameraScanning) {
-        toggleCamera(false).then(() => {
-          toggleCamera(true);
-        });
-      }
-    }
-
+    // 控制條碼相機
     async function toggleCamera(show) {
       const camBox = document.getElementById('camera-box');
       if (show) {
@@ -712,7 +692,7 @@
       // 初始化例外清點格式 (加入異常原因選項 exceptionType，預設為「正常」)
       currentParcel.items.forEach(item => {
         item.problemQty = 0; 
-        item.exceptionType = "正常"; // 🎯 預設商品清點狀態為「正常」
+        item.exceptionType = "正常"; 
         item.itemNote = ""; 
       });
 
@@ -801,7 +781,7 @@
       });
     }
 
-    // 更新商品的「異常類別」：如果改回正常，異常數量自動歸零
+    // 更新商品的「異常類別」
     function updateItemExceptionType(index, value) {
       if (!currentParcel) return;
       const item = currentParcel.items[index];
@@ -811,7 +791,6 @@
         item.problemQty = 0;
         item.itemNote = "";
       } else {
-        // 例外警報：一旦選了異常，預設異常量給 1 件
         if (item.problemQty === 0) item.problemQty = 1;
       }
 
@@ -830,12 +809,10 @@
       if (!currentParcel) return;
       const item = currentParcel.items[index];
       
-      // 如果狀態是正常，不可調整數量
       if (item.exceptionType === "正常") return;
 
       const newProblemQty = (item.problemQty || 0) + delta;
       
-      // 異常數最少為 1 (否則乾脆選「正常」)，最多不能超過應退數
       if (newProblemQty < 1 || newProblemQty > item.expectedQty) return;
       item.problemQty = newProblemQty;
       
@@ -867,7 +844,7 @@
       }
     }
 
-    // 自動判斷「總清點結果與備註」：只要有商品是不正常的，App 下拉改為 Discrepancy，並自動展開 AI 聊聊草稿區
+    // 自動判斷清點狀態
     function checkAndAutoSelectStatus() {
       let hasException = false;
       currentParcel.items.forEach(item => {
@@ -1001,7 +978,7 @@
       }
     }
 
-    // 13. 確認存檔並將清點結果回填 Google Sheets (核心：根據商品類別獨立回填 N 欄與 M 欄，徹底實施主動例外通報)
+    // 13. 確認存檔並將清點結果回填 Google Sheets
     async function submitCheckResult() {
       if (!currentParcel) return;
 
@@ -1137,6 +1114,32 @@
         </td>
       `;
       tbody.prepend(tr);
+    }
+    
+    // 指數退避 API 呼叫函數
+    async function callGeminiAPIWithRetry(url, payload) {
+      const maxRetries = 5;
+      let delay = 1000;
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+          if (response.ok) {
+            return await response.json();
+          }
+          if (response.status !== 429 && response.status < 500) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+        } catch (e) {
+          if (i === maxRetries - 1) throw e;
+        }
+        await new Promise(resolve => setTimeout(resolve, delay));
+        delay *= 2;
+      }
+      throw new Error("超過最大重試次數，API 連線失敗");
     }
   </script>
 </body>
