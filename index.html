@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ReturnScanner 智能退貨清點系統</title>
   
+  <!-- 使用 Tailwind CSS 打造現代化深色高質感介面 -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入掃描條碼的開源庫 -->
   <script src="https://unpkg.com/html5-qrcode"></script>
+  <!-- 引入 Lucide 圖示庫 -->
   <script src="https://unpkg.com/lucide@latest"></script>
   
   <style>
@@ -20,16 +23,32 @@
       -webkit-user-select: text;
       user-select: text;
     }
+    /* 自訂美化滾動條，讓包裹清單滾動時不突兀 */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(31, 41, 55, 0.5);
+      border-radius: 99px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.4);
+      border-radius: 99px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.7);
+    }
   </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col font-sans">
 
   <script>
-    // 貼上您的 GAS 網址（例如：https://script.google.com/macros/s/.../exec）
+    // 已為您保留並填入您專屬且已開通權限的 GAS 網址
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzaUzYjgR5OwX2hLtOPiIxv3nucjES7wCd-LScRCYSG-KQFBhMxqru5pzyJE_IyThXo/exec";
-    const apiKey = ""; // Gemini API 金鑰由執行環境自動注入，請保持空字串
+    const apiKey = ""; // Gemini API 金鑰
   </script>
 
+  <!-- 頂部標頭 -->
   <header class="bg-gray-900 border-b border-gray-800 px-4 py-3 sticky top-0 z-40 flex items-center justify-between shadow-md">
     <div class="flex items-center space-x-2">
       <div class="bg-indigo-600 p-2 rounded-xl text-white">
@@ -37,7 +56,7 @@
       </div>
       <div>
         <h1 class="text-sm font-bold tracking-wider text-white">ReturnScanner</h1>
-        <p class="text-[10px] text-gray-400">退貨智能核對系統 v3.0</p>
+        <p class="text-[10px] text-gray-400">退貨智能核對系統 v3.5</p>
       </div>
     </div>
     <div id="sync-status" class="flex items-center space-x-1.5 text-xs text-yellow-500 bg-yellow-500/10 px-2.5 py-1 rounded-full border border-yellow-500/20 cursor-pointer">
@@ -46,8 +65,22 @@
     </div>
   </header>
 
+  <!-- 主內容區 -->
   <main class="flex-1 overflow-y-auto p-4 max-w-lg mx-auto w-full pb-20">
     
+    <!-- CORS 本機開啟警告 (新手防呆) -->
+    <div id="cors-local-warning" class="hidden bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 mb-5 text-xs text-rose-300">
+      <div class="flex items-start gap-2.5">
+        <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-400 shrink-0 mt-0.5"></i>
+        <div>
+          <h4 class="font-bold text-white mb-1">檢測到本機開啟限制 (CORS 阻擋)</h4>
+          <p class="leading-relaxed mb-2">您目前是直接在電腦按兩下開啟 HTML 檔案。因為瀏覽器的安全性保護機制，不允許本地端直接跟 Google 試算表連線。</p>
+          <p class="font-bold text-emerald-400">💡 解決方法：請將此檔案上傳至免費的 GitHub Pages 等網頁空間，使用該網址開啟後就能 100% 成功連線！</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1. 當日處理狀態儀表板 -->
     <section class="grid grid-cols-3 gap-3 mb-5">
       <div class="bg-gray-900 p-3 rounded-xl border border-gray-800 text-center shadow">
         <p class="text-[11px] text-gray-400 mb-0.5">今日退貨</p>
@@ -63,12 +96,14 @@
       </div>
     </section>
 
+    <!-- 2. 包裹單號掃描與輸入區 -->
     <section id="scanner-section" class="bg-gray-900 rounded-2xl border border-gray-800 p-4 mb-5 shadow">
       <h2 class="text-xs font-bold text-gray-300 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
         <i data-lucide="scan-barcode" class="w-4 h-4 text-indigo-400"></i>
         第一步：掃描包裹寄件單號
       </h2>
       
+      <!-- 相機掃描視窗 -->
       <div id="camera-box" class="hidden mb-3 bg-black rounded-xl overflow-hidden border border-gray-700 relative aspect-video shadow-inner">
         <div id="interactive-reader" class="w-full h-full"></div>
         <button onclick="toggleCamera(false)" class="absolute top-2 right-2 bg-red-600/80 hover:bg-red-700 text-white p-1.5 rounded-full z-10 transition">
@@ -92,20 +127,50 @@
       </div>
     </section>
 
-    <section id="simulator-section" class="bg-gray-900/40 rounded-2xl border border-dashed border-gray-800 p-4 mb-5">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="text-xs font-bold text-gray-400 flex items-center gap-1.5">
-          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-yellow-500"></i>
-          體驗模擬器 (免實體包裹，一鍵載入退貨單)
+    <!-- 3. 包裹列表與搜尋面板 (全新升級：限高、搜尋、分類，告別漫長頁面) -->
+    <section id="simulator-section" class="bg-gray-900 rounded-2xl border border-gray-800 p-4 mb-5 shadow">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-xs font-bold text-gray-300 flex items-center gap-1.5 uppercase tracking-wider">
+          <i data-lucide="list-todo" class="w-4 h-4 text-indigo-400"></i>
+          退貨包裹清單 (<span id="filtered-count" class="font-bold text-indigo-400">0</span> 筆)
         </h3>
       </div>
-      <p class="text-[10px] text-gray-500 mb-3 leading-relaxed">點擊下方模擬包裹，即可立刻呈現您的退貨明細格式與 AI 功能測試：</p>
-      <div id="simulated-parcels" class="flex flex-col gap-2">
-        <p class="text-xs text-gray-500 italic text-center py-2">讀取中，請稍候...</p>
+
+      <!-- 搜尋與過濾控制區 -->
+      <div class="space-y-2 mb-3">
+        <!-- 清單內部搜尋框 -->
+        <div class="relative flex items-center">
+          <input type="text" id="list-search-input" oninput="filterParcels()" placeholder="快速搜尋清單中的單號或訂單..." class="w-full bg-gray-850 border border-gray-700 rounded-lg py-2 pl-9 pr-4 text-xs text-white focus:outline-none focus:border-indigo-500 select-text">
+          <i data-lucide="filter" class="absolute left-3 w-3.5 h-3.5 text-gray-400"></i>
+          <!-- 清除搜尋按鈕 -->
+          <button onclick="clearListSearch()" class="absolute right-2.5 text-gray-500 hover:text-gray-300">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- 狀態篩選頁籤 (Tabs) -->
+        <div class="grid grid-cols-3 gap-1 bg-gray-950 p-1 rounded-lg border border-gray-800">
+          <button id="tab-pending" onclick="switchTab('Pending')" class="text-[11px] font-bold py-1.5 rounded-md text-center transition bg-indigo-600 text-white shadow">
+            未清點
+          </button>
+          <button id="tab-done" onclick="switchTab('Done')" class="text-[11px] font-bold py-1.5 rounded-md text-center transition text-gray-400 hover:text-white">
+            已清點
+          </button>
+          <button id="tab-all" onclick="switchTab('All')" class="text-[11px] font-bold py-1.5 rounded-md text-center transition text-gray-400 hover:text-white">
+            全部
+          </button>
+        </div>
+      </div>
+
+      <!-- 包裹容器 (限高、滾動，避免拉長頁面) -->
+      <div id="simulated-parcels" class="flex flex-col gap-2 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
+        <p class="text-xs text-gray-500 italic text-center py-4">正在自 Google 試算表載入資料，請稍候...</p>
       </div>
     </section>
 
+    <!-- 4. 清點核對工作區 (點選包裹後展開) -->
     <section id="check-panel" class="hidden bg-gray-900 rounded-2xl border border-gray-800 p-4 mb-5 shadow-2xl transition-all duration-300">
+      <!-- 頂部包裹資訊 -->
       <div class="flex items-start justify-between border-b border-gray-800 pb-3 mb-4">
         <div>
           <span class="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded font-bold" id="panel-carrier">物流</span>
@@ -120,6 +185,7 @@
         </button>
       </div>
 
+      <!-- 買家原本填寫的退貨理由 -->
       <div class="bg-yellow-500/5 border border-yellow-500/10 rounded-xl p-3 mb-4">
         <p class="text-[10px] text-yellow-500/90 font-bold flex items-center gap-1">
           <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
@@ -128,15 +194,18 @@
         <p id="panel-buyer-notes" class="text-xs text-gray-300 mt-1 italic leading-relaxed select-text">「無備註說明」</p>
       </div>
 
+      <!-- 商品清單區域 -->
       <div class="space-y-3 mb-4">
         <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
           <i data-lucide="box" class="w-3.5 h-3.5 text-gray-400"></i>
           退貨商品清單 (<span id="panel-items-count">0</span>)
         </h3>
         <div id="panel-items-list" class="space-y-3">
-          </div>
+          <!-- 商品項目會動態插入於此 -->
+        </div>
       </div>
 
+      <!-- 商品條碼刷讀核對防呆 -->
       <div class="bg-gray-950 p-3.5 rounded-xl border border-gray-800 mb-4 shadow-inner">
         <p class="text-xs font-bold text-emerald-400 mb-2 flex items-center gap-1.5">
           <i data-lucide="barcode" class="w-4 h-4"></i>
@@ -151,6 +220,7 @@
         <p class="text-[9px] text-gray-500 mt-1.5 leading-relaxed">提示：您可以手動輸入上方商品的「產品代號」並按嗶，模擬實際用掃描槍刷條碼增加實收數量的自動防呆邏輯。</p>
       </div>
 
+      <!-- 清點異常與 AI 分析模組 -->
       <div class="space-y-3 border-t border-gray-800 pt-4 mb-5">
         <label class="block text-xs font-bold text-gray-400 uppercase">清點結果標記</label>
         <div>
@@ -164,6 +234,7 @@
           <textarea id="panel-staff-notes" placeholder="清點備註（例如：外箱破損、實際少寄商品一件、寄錯商品等...）" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none select-text"></textarea>
         </div>
 
+        <!-- Gemini AI 影像判損模組 -->
         <div class="bg-indigo-950/20 border border-indigo-900/30 rounded-xl p-3">
           <p class="text-xs font-bold text-indigo-300 flex items-center gap-1.5 mb-2">
             <i data-lucide="cpu" class="w-4 h-4 text-indigo-400"></i>
@@ -187,6 +258,7 @@
           <div id="ai-analysis-output" class="mt-2 text-xs text-gray-300 bg-black/40 p-2.5 rounded-lg border border-gray-800 hidden select-text"></div>
         </div>
 
+        <!-- Gemini AI 退貨爭議協商草稿生成器 -->
         <div id="ai-draft-box" class="bg-purple-950/20 border border-purple-900/30 rounded-xl p-3 hidden">
           <p class="text-xs font-bold text-purple-300 flex items-center gap-1.5 mb-2">
             <i data-lucide="sparkles" class="w-4 h-4 text-purple-400 animate-pulse"></i>
@@ -221,12 +293,14 @@
         </div>
       </div>
 
+      <!-- 確認儲存按鈕 -->
       <button id="btn-submit-save" onclick="submitCheckResult()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-900/30">
         <i data-lucide="check-circle" class="w-5 h-5"></i>
         確認並完成存檔 (回填 Google Sheets)
       </button>
     </section>
 
+    <!-- 5. 今日已完成記錄列表 -->
     <section class="bg-gray-900 rounded-2xl border border-gray-800 p-4 shadow">
       <h2 class="text-xs font-bold text-gray-300 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
         <i data-lucide="history" class="w-4 h-4 text-emerald-400"></i>
@@ -252,10 +326,12 @@
 
   </main>
 
+  <!-- 頁尾聲明 -->
   <footer class="bg-gray-950 border-t border-gray-800 py-3 text-center text-[10px] text-gray-500 fixed bottom-0 left-0 right-0 z-30">
     ReturnScanner · 與 Google Sheets 雲端即時安全對接
   </footer>
 
+  <!-- 自訂遮罩確認提示框 (取代瀏覽器 alert 彈窗) -->
   <div id="custom-alert" class="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50 hidden opacity-0 transition-opacity duration-200">
     <div class="bg-gray-900 border border-gray-800 rounded-2xl p-5 max-w-sm w-full text-center shadow-2xl">
       <div id="alert-icon-box" class="mx-auto w-12 h-12 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mb-3">
@@ -269,10 +345,15 @@
     </div>
   </div>
 
+  <!-- ==============================================================
+       🔧 系統邏輯核心 JavaScript (無縫結合 Google Sheets 與 Gemini)
+       ============================================================== -->
   <script>
     let parcelsData = []; 
     let currentParcel = null; 
     let html5QrcodeScanner = null; 
+    let isCameraScanning = false; // 用來追蹤相機目前是否正在掃描的 flag
+    let currentFilterTab = "Pending"; // 預設只顯示「未清點」
     
     // 初始化自製 Web Audio API 嗶嗶音效，不需外加音檔，完全相容各大手機
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -346,9 +427,18 @@
       }, 200);
     }
 
+    // 偵測是否從本機檔案開啟 (CORS 防呆偵測)
+    function checkCORSMode() {
+      if (window.location.protocol === 'file:') {
+        const warningBox = document.getElementById('cors-local-warning');
+        if (warningBox) warningBox.classList.remove('hidden');
+      }
+    }
+
     // 頁面初始化
     window.onload = function() {
       lucide.createIcons();
+      checkCORSMode();
       fetchSheetData();
     };
 
@@ -391,7 +481,31 @@
     function loadMockData() {
       parcelsData = [
         {
-          trackingNo: "TW264907599121B",
+          trackingNo: "2104533955",
+          buyer: "2604198944VECG",
+          orderId: "2604198944VECG",
+          carrier: "新竹物流退貨",
+          status: "Pending",
+          notes: "",
+          buyerNotes: "其它 (商品與想像不符) 買錯了",
+          items: [
+            { sku: "PIDA004-02", name: "冰箱保鮮盒-pp5-長方", expectedQty: 1, receivedQty: 0, location: "4C-21-C04", price: 9.79 }
+          ]
+        },
+        {
+          trackingNo: "2104860376",
+          buyer: "2604198944VECG",
+          orderId: "2604198944VECG",
+          carrier: "新竹物流退貨",
+          status: "Pending",
+          notes: "",
+          buyerNotes: "不想要了",
+          items: [
+            { sku: "PIFC005-B01", name: "大容量分裝瓶", expectedQty: 27, receivedQty: 0, location: "6C-29-E07", price: 25 }
+          ]
+        },
+        {
+          trackingNo: "TW262428652853B",
           buyer: "2604076HE0CX2T",
           orderId: "2604076HE0CX2T",
           carrier: "蝦皮店到店退貨",
@@ -404,36 +518,22 @@
           ]
         },
         {
-          trackingNo: "TW266300195428V",
-          buyer: "260412M3VWA77B",
-          orderId: "260412M3VWA77B",
+          trackingNo: "TW2608872943353",
+          buyer: "260411FQBYEBYY",
+          orderId: "260411FQBYEBYY",
           carrier: "蝦皮店到店退貨",
           status: "Pending",
           notes: "",
-          buyerNotes: "商品外表破損 木頭刷柄裂開、噴瓶蓋子也有裂痕",
+          buyerNotes: "商品瑕疵 不小心多買一個，所以要退，麻煩了",
           items: [
-            { sku: "PIBH023-03", name: "100ml加厚分裝瓶+噴頭", expectedQty: 3, receivedQty: 0, location: "7B-14-B03", price: 12.67 },
-            { sku: "PIBJ005-01", name: "拉鏈修復器-小號-15", expectedQty: 1, receivedQty: 0, location: "8A-02-D33", price: 1 },
-            { sku: "PIDE006", name: "日式木柄洗碗刷", expectedQty: 20, receivedQty: 0, location: "4B-14-B02", price: 20 }
-          ]
-        },
-        {
-          trackingNo: "TW263248087751V",
-          buyer: "260415U3VHN1FW",
-          orderId: "260415U3VHN1FW",
-          carrier: "蝦皮店到店退貨",
-          status: "Pending",
-          notes: "",
-          buyerNotes: "商品部分功能不能使用 數字6按鍵壞了",
-          items: [
-            { sku: "PIFC005-B01", name: "瓶豆計算機【常規款】天空藍", expectedQty: 1, receivedQty: 0, location: "6C-29-E07", price: 93 }
+            { sku: "319-3071", name: "23D2-透明果凍機車坐墊護套_特大", expectedQty: 1, receivedQty: 0, location: "5C-25-C04", price: 53.5 }
           ]
         }
       ];
       updateDashboardAndSimulator();
     }
 
-    // 3. 更新儀表板數據與模擬按鈕
+    // 3. 更新儀表板數據與包裹清單
     function updateDashboardAndSimulator() {
       const total = parcelsData.length;
       const done = parcelsData.filter(p => p.status.includes("已清點")).length;
@@ -443,23 +543,89 @@
       document.getElementById('stat-done').innerText = done;
       document.getElementById('stat-fail').innerText = fail;
 
+      // 觸發一次列表篩選與渲染
+      filterParcels();
+    }
+
+    // 頁籤切換邏輯 (未清點、已清點、全部)
+    function switchTab(tab) {
+      currentFilterTab = tab;
+      
+      // 更新按鈕樣式
+      const tabs = ['Pending', 'Done', 'All'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-${t.toLowerCase()}`);
+        if (t === tab) {
+          btn.className = "text-[11px] font-bold py-1.5 rounded-md text-center transition bg-indigo-600 text-white shadow";
+        } else {
+          btn.className = "text-[11px] font-bold py-1.5 rounded-md text-center transition text-gray-400 hover:text-white";
+        }
+      });
+
+      filterParcels();
+    }
+
+    // 清除包裹清單搜尋
+    function clearListSearch() {
+      document.getElementById('list-search-input').value = "";
+      filterParcels();
+    }
+
+    // 精準過濾與渲染包裹列表
+    function filterParcels() {
+      const searchKeyword = document.getElementById('list-search-input').value.trim().toLowerCase();
       const simContainer = document.getElementById('simulated-parcels');
       simContainer.innerHTML = "";
-      
-      parcelsData.forEach(p => {
-        let badgeColor = "bg-gray-800 text-gray-400";
+
+      // 1. 篩選資料
+      const filtered = parcelsData.filter(p => {
+        // 頁籤過濾
+        let isTabMatch = false;
+        const hasChecked = p.status.includes("已清點") || p.status !== "Pending";
+        
+        if (currentFilterTab === "Pending") {
+          isTabMatch = !hasChecked; // 顯示未清點
+        } else if (currentFilterTab === "Done") {
+          isTabMatch = hasChecked;  // 顯示已清點
+        } else {
+          isTabMatch = true;        // 顯示全部
+        }
+
+        // 關鍵字過濾 (單號、訂單編號、買家編號)
+        let isKeywordMatch = true;
+        if (searchKeyword) {
+          isKeywordMatch = p.trackingNo.toLowerCase().includes(searchKeyword) || 
+                            p.orderId.toLowerCase().includes(searchKeyword) ||
+                            p.buyer.toLowerCase().includes(searchKeyword);
+        }
+
+        return isTabMatch && isKeywordMatch;
+      });
+
+      // 更新過濾後的筆數顯示
+      document.getElementById('filtered-count').innerText = filtered.length;
+
+      if (filtered.length === 0) {
+        simContainer.innerHTML = `<p class="text-xs text-gray-500 italic text-center py-8">無符合目前條件的包裹</p>`;
+        return;
+      }
+
+      // 2. 渲染清單
+      filtered.forEach(p => {
+        let badgeColor = "bg-gray-800 text-gray-400 border border-gray-700/50";
         if (p.status.includes("完全相符")) badgeColor = "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
         if (p.status.includes("數量不符")) badgeColor = "bg-rose-500/10 text-rose-400 border border-rose-500/20";
         
+        const isChecked = p.status.includes("已清點") || p.status !== "Pending";
         const btn = document.createElement('button');
         btn.onclick = () => loadParcelForChecking(p.trackingNo);
-        btn.className = "w-full bg-gray-800/60 hover:bg-gray-850 border border-gray-850 p-2.5 rounded-xl text-left text-xs flex items-center justify-between transition active:scale-[0.99]";
+        btn.className = "w-full bg-gray-850 hover:bg-gray-800 border border-gray-800 p-2.5 rounded-xl text-left text-xs flex items-center justify-between transition active:scale-[0.99] shrink-0";
         btn.innerHTML = `
           <div class="flex items-center gap-2.5">
-            <span class="w-2 h-2 rounded-full ${p.status.includes('已清點') ? 'bg-emerald-400' : 'bg-yellow-500 animate-pulse'}"></span>
+            <span class="w-2 h-2 rounded-full ${isChecked ? 'bg-emerald-400' : 'bg-yellow-500 animate-pulse'}"></span>
             <div>
               <p class="font-mono font-bold text-white">${p.trackingNo}</p>
-              <p class="text-[10px] text-gray-400 mt-0.5">${p.carrier} | ${p.items.length} 筆明細</p>
+              <p class="text-[10px] text-gray-400 mt-0.5">${p.carrier} | ${p.items.length} 筆商品</p>
             </div>
           </div>
           <span class="text-[10px] px-2 py-0.5 rounded font-bold ${badgeColor}">${p.status === 'Pending' ? '未清點' : p.status}</span>
@@ -468,23 +634,33 @@
       });
     }
 
-    // 4. 控制條碼掃描相機
-    function toggleCamera(show) {
+    // 4. 控制條碼掃描相機 (重大優化：異步 stop 相機，確實釋放控制權)
+    async function toggleCamera(show) {
       const camBox = document.getElementById('camera-box');
       if (show) {
         camBox.classList.remove('hidden');
         startBarcodeScanner();
       } else {
         camBox.classList.add('hidden');
-        if (html5QrcodeScanner) {
-          html5QrcodeScanner.clear();
+        if (html5QrcodeScanner && isCameraScanning) {
+          try {
+            // 確實執行 .stop() 釋放硬體控制權，不留緩存
+            await html5QrcodeScanner.stop();
+            isCameraScanning = false;
+            console.log("相機鏡頭已確實釋放與關閉");
+          } catch (err) {
+            console.error("關閉相機失敗:", err);
+          }
         }
       }
     }
 
     function startBarcodeScanner() {
-      html5QrcodeScanner = new Html5Qrcode("interactive-reader");
-      const config = { fps: 10, qrbox: { width: 250, height: 120 } };
+      if (!html5QrcodeScanner) {
+        html5QrcodeScanner = new Html5Qrcode("interactive-reader");
+      }
+      
+      const config = { fps: 15, qrbox: { width: 250, height: 120 } };
       
       html5QrcodeScanner.start(
         { facingMode: "environment" }, 
@@ -492,11 +668,15 @@
         (decodedText) => {
           playBeep(true);
           toggleCamera(false);
+          // 掃描成功，直接填入搜尋框並加載
           document.getElementById('manual-tracking').value = decodedText;
           loadParcelForChecking(decodedText);
         },
         () => {} // 掃描幀靜默運行
-      ).catch(() => {
+      ).then(() => {
+        isCameraScanning = true;
+      }).catch((err) => {
+        console.error("相機開啟失敗:", err);
         showAlert("相機開啟失敗", "請確定網頁已獲得您的手機相機權限且工作在安全協定 (HTTPS) 下！", "error");
         toggleCamera(false);
       });
@@ -591,8 +771,10 @@
       });
     }
 
+    // 關閉清點面板 (修復：自動清空主輸入框，防止條碼殘留卡死)
     function closeCheckPanel() {
       document.getElementById('check-panel').classList.add('hidden');
+      document.getElementById('manual-tracking').value = ""; // 清空輸入框
       currentParcel = null;
     }
 
@@ -741,7 +923,7 @@
       ctx.fill();
 
       document.getElementById('btn-ai-analyze').removeAttribute('disabled');
-      showAlert("照片模擬成功", "已在 Canvas 畫布中模擬生成一張「外殼嚴重撕裂、凹陷，並有物流單與水漬」的退貨紙箱照片。請點擊「AI 智能分析」發送分析請求！", "success");
+      showAlert("照片模擬成功", "已在 Canvas 畫布中模擬生成一張退貨紙箱照片。請點擊「AI 智能分析」發送分析請求！", "success");
     }
 
     // 10. 呼叫 Gemini AI 影像判讀 (gemini-2.5-flash-image-preview)
@@ -833,7 +1015,7 @@
       }
     }
 
-    // 11. 呼慢 Gemini AI 文字生成協商與申訴草稿 (gemini-2.5-flash-preview-09-2025)
+    // 11. 呼叫 Gemini AI 文字生成協商與申訴草稿 (gemini-2.5-flash-preview-09-2025)
     async function generateAIDrafts() {
       if (!currentParcel) return;
 
@@ -938,7 +1120,7 @@
       }
     }
 
-    // 13. 確認存檔並將清點結果回填 Google Sheets
+    // 13. 確認存檔並將清點結果回填 Google Sheets (修復：回填成功後清空首頁搜尋框)
     async function submitCheckResult() {
       if (!currentParcel) return;
 
@@ -991,6 +1173,9 @@
         }
 
         addHistoryRow(payload.trackingNo, payload.status, payload.notes);
+        
+        // 存檔成功，重置清點面板與清除主搜尋框！
+        document.getElementById('manual-tracking').value = ""; // 清除主單號搜尋
         closeCheckPanel();
         updateDashboardAndSimulator();
 
