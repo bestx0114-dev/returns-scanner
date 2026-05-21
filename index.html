@@ -80,7 +80,7 @@
       </div>
     </div>
 
-    <!-- 1. 當日處理狀態儀表板 -->
+    <!-- 1. 當日處理狀態儀表板 (支援手動更正總量) -->
     <section class="grid grid-cols-3 gap-3 mb-5">
       <div onclick="modifyTotalReturns()" class="bg-gray-900 p-3 rounded-xl border border-indigo-500/30 text-center shadow cursor-pointer hover:bg-gray-850 active:scale-95 transition group">
         <p class="text-[11px] text-gray-400 mb-0.5 flex items-center justify-center gap-1 group-hover:text-indigo-400">
@@ -105,7 +105,7 @@
         第一步：掃描包裹寄件單號
       </h2>
       
-      <!-- 相機掃描視窗 (支援一維橫長條碼高解析對焦) -->
+      <!-- 相機掃描視窗 (包含一維條碼/二維條碼快速切換頁籤，解決一維條碼難讀取問題) -->
       <div id="camera-box" class="hidden mb-3 bg-black rounded-xl overflow-hidden border border-gray-700 relative flex flex-col shadow-inner">
         <!-- 條碼模式切換器 -->
         <div class="grid grid-cols-2 gap-1 bg-gray-900 p-1 border-b border-gray-800">
@@ -886,7 +886,7 @@
     }
 
     function handleStatusChange() {
-      // 由於 UI 上已移除了 panel-status-select 元素，此函數僅作安全保留以防遺留事件參照
+      // 由於 UI 上已移成了 panel-status-select 元素，此函數僅作安全保留以防遺留事件參照
       console.log("Status selection changed internally.");
     }
 
@@ -930,7 +930,7 @@
       1. 「買家聊聊協商草稿」：語氣客氣、溫和但堅定。委婉地向買家核對是否漏寄，還是寄錯包裹。提供拆箱與秤重錄影證據說明，希望能與買家圓滿溝通，引導買家補寄或取消退款申請。
       2. 「平台退貨拒絕申訴書」：語氣極度嚴謹、正式、強硬且富有邏輯。向網購平台官方客服提出駁回退款的申訴。詳細列出實際清點時，外箱重量/件數不符的事實（已提供開箱一鏡到底錄影、清點存檔記錄為憑證），懇請平台核實並介入拒絕對買家退款。
 
-      請嚴格以結構化 JSON 格式輸出：
+      請整格以結構化 JSON 格式輸出：
       {
         "buyer_chat": "聊聊草稿內容...",
         "platform_appeal": "拒退款申訴書內容..."
@@ -1020,7 +1020,7 @@
           hasAnyException = true;
           const qty = item.problemQty || 0;
 
-          // 核心規則：
+          // 核心例外計算邏輯：
           // 1. 數量有少 -> 實收數自動扣除異常量，清點狀態寫入「數量有少[X]」
           if (item.exceptionType === "數量有少") {
             computedRealQty = Math.max(0, item.expectedQty - qty);
@@ -1101,7 +1101,7 @@
       } catch (err) {
         console.error(err);
         playBeep(false);
-        showAlert("存檔失敗", "無法將清點資料上傳。請檢查您的網路訊號，並確認試算表 Apps Script 的網頁應用程式部署「誰能存取」已改為「任何人(Anyone)」。", "error");
+        showAlert("存檔失敗", "無法將清點資料上傳。請檢查您的網絡訊號，並確認試算表 Apps Script 的網頁應用程式部署「誰能存取」已改為「任何人(Anyone)」。", "error");
       } finally {
         submitBtn.removeAttribute('disabled');
         submitBtn.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-900/30";
