@@ -796,7 +796,7 @@
           </div>
 
           <!-- 自訂其他異常備註輸入框 -->
-          ${item.exceptionType === '其他' ? `
+          ${item.exceptionType === '開源' || item.exceptionType === '其他' ? `
             <div class="mt-2 pt-2 border-t border-rose-900/20">
               <input type="text" 
                      placeholder="請輸入其他自訂異常原因 (將寫入清點狀態中)..." 
@@ -808,6 +808,16 @@
         `;
         container.appendChild(div);
       });
+    }
+
+    // 🎯 修正核心遺漏函數：補回用於隱藏和清空面板的 closeCheckPanel 函數
+    function closeCheckPanel() {
+      const panel = document.getElementById('check-panel');
+      if (panel) {
+        panel.classList.add('hidden');
+      }
+      document.getElementById('manual-tracking').value = ""; // 清空搜尋欄輸入框
+      currentParcel = null;
     }
 
     // 更新商品的「異常類別」
@@ -935,7 +945,7 @@
 
       【生成項目】
       1. 「買家聊聊協商草稿」：語氣客氣、溫和但堅定。委婉地向買家核對是否漏寄，還是寄錯包裹。提供拆箱與秤重錄影證據說明，希望能與買家圓滿溝通，引導買家補寄或取消退款申請。
-      2. 「平台退貨拒絕申訴書」：語氣極度嚴謹、正式、強硬且富有邏輯。向網購平台官方客服提出駁回退款的申訴。詳細列出實際清點時，外箱重量/件數不符的事實（已提供開箱一鏡到底錄影、清點存檔記錄為憑證），懇請平台核實並介入拒絕對買家退款。
+      2. 「平台退貨拒絕申訴書」：語氣極度嚴謹、正式、強硬且邏輯。向網購平台官方客服提出駁回退款的申訴。詳細列出實際清點時，外箱重量/件數不符的事實（已提供開箱一鏡到底錄影、清點存檔記錄為憑證），懇請平台核實並介入拒絕對買家退款。
 
       請整格以結構化 JSON 格式輸出：
       {
