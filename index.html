@@ -48,7 +48,7 @@
     const apiKey = ""; // Gemini API 金鑰
   </script>
 
-  <!-- 頂部標頭 -->
+  <!-- 頂部標頭 (已嵌入 AAA 智慧字體等比例縮放器) -->
   <header class="bg-gray-900 border-b border-gray-800 px-4 py-3 sticky top-0 z-40 flex items-center justify-between shadow-md">
     <div class="flex items-center space-x-2">
       <div class="bg-indigo-600 p-2 rounded-xl text-white">
@@ -56,12 +56,23 @@
       </div>
       <div>
         <h1 class="text-sm font-bold tracking-wider text-white">ReturnScanner</h1>
-        <p class="text-[10px] text-gray-400">退貨智能核對系統 v3.9</p>
+        <p class="text-xs text-gray-400">退貨智能核對系統 v3.9+</p>
       </div>
     </div>
-    <div id="sync-status" class="flex items-center space-x-1.5 text-xs text-yellow-500 bg-yellow-500/10 px-2.5 py-1 rounded-full border border-yellow-500/20 cursor-pointer">
-      <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
-      <span id="sync-text">載入中...</span>
+    
+    <!-- 右側：字體控制器 + 同步狀態 -->
+    <div class="flex items-center space-x-3">
+      <!-- 🎯 AAA 智慧型等比例字體縮放器 (放大間距與觸控範圍) -->
+      <div class="flex items-center bg-gray-950 p-1.5 rounded-xl border border-gray-800 text-xs shadow-inner">
+        <button onclick="changeFontSize('small')" id="btn-fs-small" class="w-7 h-7 flex items-center justify-center text-[10px] font-bold rounded-lg transition text-gray-400 hover:text-white" title="小字體">A</button>
+        <button onclick="changeFontSize('medium')" id="btn-fs-medium" class="w-7 h-7 flex items-center justify-center text-xs font-bold rounded-lg transition text-gray-400 hover:text-white" title="標準">A</button>
+        <button onclick="changeFontSize('large')" id="btn-fs-large" class="w-7 h-7 flex items-center justify-center text-sm font-bold rounded-lg transition text-gray-400 hover:text-white" title="特大字體">A</button>
+      </div>
+      
+      <div id="sync-status" class="flex items-center space-x-1.5 text-xs text-yellow-500 bg-yellow-500/10 px-2.5 py-1 rounded-full border border-yellow-500/20 cursor-pointer">
+        <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
+        <span id="sync-text">載入中...</span>
+      </div>
     </div>
   </header>
 
@@ -83,24 +94,24 @@
     <!-- 1. 當日處理狀態儀表板 -->
     <section class="grid grid-cols-3 gap-3 mb-5">
       <div onclick="modifyTotalReturns()" class="bg-gray-900 p-3 rounded-xl border border-indigo-500/30 text-center shadow cursor-pointer hover:bg-gray-850 active:scale-95 transition group">
-        <p class="text-[11px] text-gray-400 mb-0.5 flex items-center justify-center gap-1 group-hover:text-indigo-400">
+        <p class="text-xs text-gray-400 mb-1 flex items-center justify-center gap-1 group-hover:text-indigo-400">
           今日退貨 <i data-lucide="edit-2" class="w-2.5 h-2.5 text-gray-500"></i>
         </p>
-        <p id="stat-total" class="text-xl font-extrabold text-indigo-400">0</p>
+        <p id="stat-total" class="text-2xl font-black text-indigo-400">0</p>
       </div>
       <div class="bg-gray-900 p-3 rounded-xl border border-gray-800 text-center shadow">
-        <p class="text-[11px] text-gray-400 mb-0.5">已清點</p>
-        <p id="stat-done" class="text-xl font-extrabold text-emerald-400">0</p>
+        <p class="text-xs text-gray-400 mb-1">已清點</p>
+        <p id="stat-done" class="text-2xl font-black text-emerald-400">0</p>
       </div>
       <div class="bg-gray-900 p-3 rounded-xl border border-gray-800 text-center shadow">
-        <p class="text-[11px] text-gray-400 mb-0.5">異常數</p>
-        <p id="stat-fail" class="text-xl font-extrabold text-rose-400">0</p>
+        <p class="text-xs text-gray-400 mb-1">異常數</p>
+        <p id="stat-fail" class="text-2xl font-black text-rose-400">0</p>
       </div>
     </section>
 
     <!-- 2. 【核心工作區：最上方】包裹單號掃描與輸入區 -->
     <section id="scanner-section" class="bg-gray-900 rounded-2xl border border-gray-800 p-4 mb-5 shadow">
-      <h2 class="text-xs font-bold text-gray-300 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
+      <h2 class="text-sm font-bold text-gray-300 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
         <i data-lucide="scan-barcode" class="w-4 h-4 text-indigo-400"></i>
         第一步：掃描包裹寄件單號
       </h2>
@@ -109,10 +120,10 @@
       <div id="camera-box" class="hidden mb-3 bg-black rounded-xl overflow-hidden border border-gray-700 relative flex flex-col shadow-inner">
         <!-- 條碼模式切換器 -->
         <div class="grid grid-cols-2 gap-1 bg-gray-900 p-1 border-b border-gray-800">
-          <button id="cam-mode-barcode" onclick="setCameraMode('barcode')" class="text-[10px] font-bold py-1.5 rounded text-center transition bg-indigo-600 text-white shadow">
+          <button id="cam-mode-barcode" onclick="setCameraMode('barcode')" class="text-xs font-bold py-1.5 rounded text-center transition bg-indigo-600 text-white shadow">
             一維條碼 (長形物流單號)
           </button>
-          <button id="cam-mode-qrcode" onclick="setCameraMode('qrcode')" class="text-[10px] font-bold py-1.5 rounded text-center transition text-gray-400 hover:text-white">
+          <button id="cam-mode-qrcode" onclick="setCameraMode('qrcode')" class="text-xs font-bold py-1.5 rounded text-center transition text-gray-400 hover:text-white">
             二維條碼 (QR Code)
           </button>
         </div>
@@ -143,9 +154,9 @@
       <!-- 頂部包裹資訊 -->
       <div class="flex items-start justify-between border-b border-gray-800 pb-3 mb-4">
         <div>
-          <span class="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded font-bold" id="panel-carrier">物流</span>
-          <h2 class="text-lg font-bold text-white mt-1" id="panel-tracking">TW00000000</h2>
-          <p class="text-xs text-gray-400 mt-0.5 flex items-center gap-1 select-text">
+          <span class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-0.5 rounded font-bold" id="panel-carrier">物流</span>
+          <h2 class="text-xl font-black text-white mt-1" id="panel-tracking">TW00000000</h2>
+          <p class="text-sm text-gray-400 mt-1 flex items-center gap-1 select-text">
             <i data-lucide="hash" class="w-3.5 h-3.5 text-gray-500"></i>
             平台訂單: <span id="panel-order-id" class="font-mono">--</span>
           </p>
@@ -157,20 +168,20 @@
 
       <!-- 買家原本填寫的退貨理由 -->
       <div class="bg-yellow-500/5 border border-yellow-500/10 rounded-xl p-3 mb-4">
-        <p class="text-[10px] text-yellow-500/90 font-bold flex items-center gap-1">
+        <p class="text-xs text-yellow-500/90 font-bold flex items-center gap-1">
           <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
           買家退貨聲稱原因：
         </p>
-        <p id="panel-buyer-notes" class="text-xs text-gray-300 mt-1 italic leading-relaxed select-text">「無備註說明」</p>
+        <p id="panel-buyer-notes" class="text-sm text-gray-300 mt-1.5 italic leading-relaxed select-text">「無備註說明」</p>
       </div>
 
       <!-- 商品清單區域 -->
       <div class="space-y-3 mb-4">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
+        <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1">
           <i data-lucide="box" class="w-3.5 h-3.5 text-gray-400"></i>
           退貨商品清單 (<span id="panel-items-count">0</span>)
         </h3>
-        <p class="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg leading-relaxed">
+        <p class="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg leading-relaxed">
           💡 <b>主動例外通報法已啟用</b>：系統預設所有退回商品為「正常」，若無誤，直接按下方完成存檔即可。有問題再增設「異常數量」並選擇原因。
         </p>
         <div id="panel-items-list" class="space-y-3">
@@ -180,7 +191,7 @@
 
       <!-- 商品條碼刷讀核對防呆 -->
       <div class="bg-gray-950 p-3.5 rounded-xl border border-gray-800 mb-4 shadow-inner">
-        <p class="text-xs font-bold text-emerald-400 mb-2 flex items-center gap-1.5">
+        <p class="text-sm font-bold text-emerald-400 mb-2 flex items-center gap-1.5">
           <i data-lucide="barcode" class="w-4 h-4"></i>
           條碼槍比對與防呆
         </p>
@@ -190,12 +201,12 @@
             比對
           </button>
         </div>
-        <p class="text-[9px] text-gray-500 mt-1.5 leading-relaxed">說明：若需要確認退回的是否為正確商品，可刷入「產品代號」，系統會自動在清單中核對。</p>
+        <p class="text-xs text-gray-500 mt-1.5 leading-relaxed">說明：若需要確認退回的是否為正確商品，可刷入「產品代號」，系統會自動在清單中核對。</p>
       </div>
 
       <!-- 備註與送出 -->
       <div class="space-y-3 border-t border-gray-800 pt-4 mb-5">
-        <label class="block text-xs font-bold text-gray-400 uppercase">清點備註</label>
+        <label class="block text-sm font-bold text-gray-400 uppercase">清點備註</label>
         <div>
           <textarea id="panel-staff-notes" placeholder="清點備註（例如：已拍拆箱影片存證、外包裝有潑水...）" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-2.5 text-xs text-white focus:outline-none select-text"></textarea>
         </div>
@@ -244,7 +255,7 @@
 
     <!-- 5. 今日已完成記錄列表 -->
     <section class="bg-gray-900 rounded-2xl border border-gray-800 p-4 shadow mb-5">
-      <h2 class="text-xs font-bold text-gray-300 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
+      <h2 class="text-sm font-bold text-gray-300 mb-3 flex items-center gap-1.5 uppercase tracking-wider">
         <i data-lucide="history" class="w-4 h-4 text-emerald-400"></i>
         今日清點歷史記錄
       </h2>
@@ -269,7 +280,7 @@
     <!-- 6. 【包裹列表與搜尋面板：移至最下方】 -->
     <section id="simulator-section" class="bg-gray-900 rounded-2xl border border-gray-800 p-4 shadow">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="text-xs font-bold text-gray-300 flex items-center gap-1.5 uppercase tracking-wider">
+        <h3 class="text-sm font-bold text-gray-300 flex items-center gap-1.5 uppercase tracking-wider">
           <i data-lucide="list-todo" class="w-4 h-4 text-indigo-400"></i>
           退貨包裹清單對照庫 (<span id="filtered-count" class="font-bold text-indigo-400">0</span> 筆)
         </h3>
@@ -286,13 +297,13 @@
         </div>
 
         <div class="grid grid-cols-3 gap-1 bg-gray-950 p-1 rounded-lg border border-gray-800">
-          <button id="tab-pending" onclick="switchTab('Pending')" class="text-[11px] font-bold py-1.5 rounded-md text-center transition bg-indigo-600 text-white shadow">
+          <button id="tab-pending" onclick="switchTab('Pending')" class="text-xs font-bold py-1.5 rounded-md text-center transition bg-indigo-600 text-white shadow">
             未清點
           </button>
-          <button id="tab-done" onclick="switchTab('Done')" class="text-[11px] font-bold py-1.5 rounded-md text-center transition text-gray-400 hover:text-white">
+          <button id="tab-done" onclick="switchTab('Done')" class="text-xs font-bold py-1.5 rounded-md text-center transition text-gray-400 hover:text-white">
             已清點
           </button>
-          <button id="tab-all" onclick="switchTab('All')" class="text-[11px] font-bold py-1.5 rounded-md text-center transition text-gray-400 hover:text-white">
+          <button id="tab-all" onclick="switchTab('All')" class="text-xs font-bold py-1.5 rounded-md text-center transition text-gray-400 hover:text-white">
             全部
           </button>
         </div>
@@ -306,7 +317,7 @@
 
   </main>
 
-  <footer class="bg-gray-950 border-t border-gray-800 py-3 text-center text-[10px] text-gray-500 fixed bottom-0 left-0 right-0 z-30">
+  <footer class="bg-gray-950 border-t border-gray-800 py-3 text-center text-xs text-gray-500 fixed bottom-0 left-0 right-0 z-30">
     ReturnScanner · 與 Google Sheets 雲端即時安全對接
   </footer>
 
@@ -408,10 +419,49 @@
       }
     }
 
+    // 🎯 新增字體大小控制邏輯 (智慧 PWA 本地記憶)
+    function changeFontSize(size) {
+      const html = document.documentElement;
+      const btnSmall = document.getElementById('btn-fs-small');
+      const btnMedium = document.getElementById('btn-fs-medium');
+      const btnLarge = document.getElementById('btn-fs-large');
+      
+      if (!btnSmall || !btnMedium || !btnLarge) return;
+
+      const inactiveClass = "w-7 h-7 flex items-center justify-center font-bold rounded-lg transition text-gray-400 hover:text-white";
+      const activeClass = "w-7 h-7 flex items-center justify-center font-bold rounded-lg transition bg-indigo-600 text-white shadow";
+      
+      btnSmall.className = "text-[10px] " + inactiveClass;
+      btnMedium.className = "text-xs " + inactiveClass;
+      btnLarge.className = "text-sm " + inactiveClass;
+      
+      if (size === 'small') {
+        html.style.setProperty('--global-scale', '0.85');
+        html.style.fontSize = '15px';
+        btnSmall.className = "text-[10px] " + activeClass;
+        localStorage.setItem('scanner-font-size', 'small');
+      } else if (size === 'medium') {
+        html.style.setProperty('--global-scale', '1.0');
+        html.style.fontSize = '18px'; 
+        btnMedium.className = "text-xs " + activeClass;
+        localStorage.setItem('scanner-font-size', 'medium');
+      } else if (size === 'large') {
+        // 🎯 讓特大字體基準更有感
+        html.style.setProperty('--global-scale', '1.3');
+        html.style.fontSize = '24px'; 
+        btnLarge.className = "text-sm " + activeClass;
+        localStorage.setItem('scanner-font-size', 'large');
+      }
+    }
+
     window.onload = function() {
       lucide.createIcons();
       checkCORSMode();
       fetchSheetData();
+      
+      // 讀取本地快取的字體設定
+      const savedFontSize = localStorage.getItem('scanner-font-size') || 'medium';
+      changeFontSize(savedFontSize);
     };
 
     async function fetchSheetData() {
@@ -524,7 +574,6 @@
       }
     }
 
-    // 頁籤篩選邏輯：對應全新的例外清點狀態
     function switchTab(tab) {
       currentFilterTab = tab;
       
@@ -532,9 +581,9 @@
       tabs.forEach(t => {
         const btn = document.getElementById(`tab-${t.toLowerCase()}`);
         if (t === tab) {
-          btn.className = "text-[11px] font-bold py-1.5 rounded-md text-center transition bg-indigo-600 text-white shadow";
+          btn.className = "text-xs font-bold py-1.5 rounded-md text-center transition bg-indigo-600 text-white shadow";
         } else {
-          btn.className = "text-[11px] font-bold py-1.5 rounded-md text-center transition text-gray-400 hover:text-white";
+          btn.className = "text-xs font-bold py-1.5 rounded-md text-center transition text-gray-400 hover:text-white";
         }
       });
 
@@ -597,10 +646,10 @@
             <span class="w-2 h-2 rounded-full ${isChecked ? 'bg-emerald-400' : 'bg-yellow-500 animate-pulse'}"></span>
             <div>
               <p class="font-mono font-bold text-white">${p.trackingNo}</p>
-              <p class="text-[10px] text-gray-400 mt-0.5">${p.carrier} | ${p.items.length} 筆商品</p>
+              <p class="text-xs text-gray-400 mt-0.5">${p.carrier} | ${p.items.length} 筆商品</p>
             </div>
           </div>
-          <span class="text-[10px] px-2 py-0.5 rounded font-bold ${badgeColor}">${p.status === 'Pending' ? '未清點' : p.status}</span>
+          <span class="text-xs px-2 py-0.5 rounded font-bold ${badgeColor}">${p.status === 'Pending' ? '未清點' : p.status}</span>
         `;
         simContainer.appendChild(btn);
       });
@@ -614,11 +663,11 @@
       const btnQrcode = document.getElementById('cam-mode-qrcode');
 
       if (mode === "barcode") {
-        btnBarcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition bg-indigo-600 text-white shadow";
-        btnQrcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition text-gray-400 hover:text-white";
+        btnBarcode.className = "text-xs font-bold py-1.5 rounded text-center transition bg-indigo-600 text-white shadow";
+        btnQrcode.className = "text-xs font-bold py-1.5 rounded text-center transition text-gray-400 hover:text-white";
       } else {
-        btnBarcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition text-gray-400 hover:text-white";
-        btnQrcode.className = "text-[10px] font-bold py-1.5 rounded text-center transition bg-indigo-600 text-white shadow";
+        btnBarcode.className = "text-xs font-bold py-1.5 rounded text-center transition text-gray-400 hover:text-white";
+        btnQrcode.className = "text-xs font-bold py-1.5 rounded text-center transition bg-indigo-600 text-white shadow";
       }
 
       if (isCameraScanning) {
@@ -700,6 +749,17 @@
       });
     }
 
+    // 補回缺失的手動搜尋處理 handleManualSearch 函數
+    function handleManualSearch() {
+      const input = document.getElementById('manual-tracking');
+      const val = input.value.trim();
+      if (!val) {
+        showAlert("提示", "請先輸入或掃描寄件單號！", "info");
+        return;
+      }
+      loadParcelForChecking(val);
+    }
+
     function loadParcelForChecking(trackingNo) {
       const parcel = parcelsData.find(p => (p.trackingNo || "").toLowerCase() === trackingNo.toLowerCase().trim());
       if (!parcel) {
@@ -735,7 +795,7 @@
       checkPanel.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 7. 渲染包含「異常類別下拉選單」的商品卡片
+    // 7. 渲染包含「異常類別下拉選單」的商品卡片 (優化字型為 Rem 親和比例)
     function renderCheckingItems() {
       const container = document.getElementById('panel-items-list');
       container.innerHTML = "";
@@ -754,28 +814,31 @@
         const matchClass = hasProblem ? "text-rose-400 font-extrabold" : "text-gray-400";
 
         const div = document.createElement('div');
-        div.className = `p-3.5 rounded-xl border ${cardBorder} flex flex-col justify-between gap-3 transition-all duration-200`;
+        div.className = `p-4 rounded-xl border ${cardBorder} flex flex-col justify-between gap-3 transition-all duration-200`;
         div.innerHTML = `
           <div class="flex items-start justify-between gap-2">
             <div class="flex-1">
-              <div class="flex items-center gap-1.5">
-                <span class="text-[10px] font-bold bg-gray-800 text-gray-300 px-2 py-0.5 rounded border border-gray-700">儲位: ${item.location}</span>
-                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeColor}">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <!-- 🎯 放大儲位、狀態與 Row 標籤，捨棄絕對 pixel text-[10px] 單位，採用響應 Rem 單位 -->
+                <span class="text-xs font-bold bg-gray-800 text-gray-300 px-2 py-0.5 rounded border border-gray-700">儲位: ${item.location}</span>
+                <span class="text-xs font-bold px-2 py-0.5 rounded ${badgeColor}">
                   清點狀態: ${item.exceptionType === '正常' ? '正常' : item.exceptionType}
                 </span>
-                <span class="text-[9px] text-gray-500 font-mono">Row: ${item.rowNum}</span>
+                <span class="text-xs text-gray-500 font-mono">Row: ${item.rowNum}</span>
               </div>
-              <h4 class="text-xs font-bold text-white mt-2 select-text">${item.name}</h4>
-              <p class="text-[10px] font-mono text-gray-400 mt-1 select-text">商品代號: <span class="bg-black/50 px-1 py-0.5 rounded text-indigo-300 font-bold">${item.sku}</span></p>
+              <!-- 🎯 商品名稱放大 -->
+              <h4 class="text-base font-bold text-white mt-2 select-text">${item.name}</h4>
+              <p class="text-xs font-mono text-gray-400 mt-1 select-text">商品代號: <span class="bg-black/50 px-1.5 py-0.5 rounded text-indigo-300 font-bold">${item.sku}</span></p>
             </div>
-            <p class="text-xs font-mono font-bold text-indigo-400">NT$${item.price}</p>
+            <!-- 🎯 單價放大 -->
+            <p class="text-sm font-mono font-bold text-indigo-400">NT$${item.price}</p>
           </div>
           
-          <div class="grid grid-cols-2 gap-3 items-center border-t border-gray-800/40 pt-2.5">
-            <!-- 左側：異常類型下拉選單 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center border-t border-gray-800/40 pt-2.5">
+            <!-- 左側：異常類型下拉選單 (放大間距、字體、高度) -->
             <div>
-              <label class="block text-[10px] text-gray-500 mb-1">異常原因分類：</label>
-              <select onchange="updateItemExceptionType(${index}, this.value)" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+              <label class="block text-xs font-medium text-gray-400 mb-1">異常原因分類：</label>
+              <select onchange="updateItemExceptionType(${index}, this.value)" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-indigo-500 h-10">
                 <option value="正常" ${item.exceptionType === '正常' ? 'selected' : ''}>✅ 正常</option>
                 <option value="數量有少" ${item.exceptionType === '數量有少' ? 'selected' : ''}>1. 數量有少</option>
                 <option value="商品破損" ${item.exceptionType === '商品破損' ? 'selected' : ''}>2. 商品破損</option>
@@ -784,13 +847,13 @@
               </select>
             </div>
 
-            <!-- 右側：異常數量加減 -->
-            <div class="flex flex-col items-end">
-              <span class="text-[10px] text-gray-500 mb-1">異常數量 (應退 ${item.expectedQty} 件)：</span>
-              <div class="flex items-center space-x-2">
-                <button onclick="changeItemQty(${index}, -1)" class="w-7 h-7 rounded-md bg-gray-800 hover:bg-gray-700 text-white flex items-center justify-center font-bold text-xs transition" ${item.exceptionType === '正常' ? 'disabled' : ''}>-</button>
-                <span class="text-xs font-extrabold font-mono ${matchClass} min-w-[16px] text-center">${item.problemQty || 0}</span>
-                <button onclick="changeItemQty(${index}, 1)" class="w-7 h-7 rounded-md bg-rose-900/60 hover:bg-rose-800/80 text-white flex items-center justify-center font-bold text-xs transition" ${item.exceptionType === '正常' ? 'disabled' : ''}>+</button>
+            <!-- 右側：異常數量加減 (顯著放大觸控按鈕大小，從 w-7 h-7 提升為 w-10 h-10，防止誤觸，字型大幅放大) -->
+            <div class="flex flex-col items-start md:items-end mt-2 md:mt-0">
+              <span class="text-xs text-gray-400 mb-1">異常數量 (應退 <strong class="text-white text-sm font-bold font-mono">${item.expectedQty}</strong> 件)：</span>
+              <div class="flex items-center space-x-3">
+                <button onclick="changeItemQty(${index}, -1)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white flex items-center justify-center font-bold text-lg transition shadow active:scale-95" ${item.exceptionType === '正常' ? 'disabled' : ''}>-</button>
+                <span class="text-lg font-black font-mono ${matchClass} min-w-[24px] text-center">${item.problemQty || 0}</span>
+                <button onclick="changeItemQty(${index}, 1)" class="w-10 h-10 rounded-xl bg-rose-900/60 hover:bg-rose-800/80 text-white flex items-center justify-center font-bold text-lg transition shadow active:scale-95" ${item.exceptionType === '正常' ? 'disabled' : ''}>+</button>
               </div>
             </div>
           </div>
@@ -800,7 +863,7 @@
             <div class="mt-2 pt-2 border-t border-rose-900/20">
               <input type="text" 
                      placeholder="請輸入其他自訂異常原因 (將寫入清點狀態中)..." 
-                     class="w-full bg-gray-950 border border-rose-900/30 rounded-lg p-2 text-[11px] text-gray-200 placeholder-rose-700/60 focus:outline-none focus:border-rose-500 select-text"
+                     class="w-full bg-gray-950 border border-rose-900/30 rounded-lg p-2.5 text-xs text-gray-200 placeholder-rose-700/60 focus:outline-none focus:border-rose-500 select-text"
                      value="${item.itemNote || ''}" 
                      oninput="updateItemNote(${index}, this.value)">
             </div>
@@ -810,7 +873,7 @@
       });
     }
 
-    // 🎯 修正核心遺漏函數：補回用於隱藏和清空面板的 closeCheckPanel 函數
+    // 補回用於隱藏和清空面板的 closeCheckPanel 函數
     function closeCheckPanel() {
       const panel = document.getElementById('check-panel');
       if (panel) {
@@ -920,7 +983,7 @@
       resultsArea.classList.remove('hidden');
       
       document.getElementById('draft-buyer-chat').innerText = "AI 正在字斟句酌，起草聊聊中...";
-      document.getElementById('draft-platform-appeal').innerText = "AI 正在統整證據，起草平台拒退款申訴中...";
+      document.getElementById('draft-platform-appeal').innerText = "AI 正在統整證據，起草 platform 拒退款申訴中...";
 
       let discrepancyDetails = "";
       currentParcel.items.forEach(item => {
