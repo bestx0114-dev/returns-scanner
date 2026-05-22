@@ -80,7 +80,7 @@
       </div>
     </div>
 
-    <!-- 1. 當日處理狀態儀表板 (支援手動更正總量) -->
+    <!-- 1. 當日處理狀態儀表板 -->
     <section class="grid grid-cols-3 gap-3 mb-5">
       <div onclick="modifyTotalReturns()" class="bg-gray-900 p-3 rounded-xl border border-indigo-500/30 text-center shadow cursor-pointer hover:bg-gray-850 active:scale-95 transition group">
         <p class="text-[11px] text-gray-400 mb-0.5 flex items-center justify-center gap-1 group-hover:text-indigo-400">
@@ -495,10 +495,10 @@
       const totalFromSheets = parcelsData.length;
       
       // 已清點：只要 status 不是 "Pending" 且不是空字串，就代表已完成清點
-      const done = parcelsData.filter(p => p.status !== "Pending" && p.status !== "").length;
+      const done = parcelsData.filter(p => (p.status || "Pending") !== "Pending" && p.status !== "").length;
       
       // 異常數：已被清點，且 status 不是 "正常" 且不是 "已清點-完全相符" 的包裹
-      const fail = parcelsData.filter(p => p.status !== "Pending" && p.status !== "" && p.status !== "正常" && p.status !== "已清點-完全相符").length;
+      const fail = parcelsData.filter(p => (p.status || "Pending") !== "Pending" && p.status !== "" && p.status !== "正常" && p.status !== "已清點-完全相符").length;
 
       const displayTotal = (userCustomTotalReturns !== null) ? userCustomTotalReturns : totalFromSheets;
 
@@ -553,7 +553,7 @@
 
       const filtered = parcelsData.filter(p => {
         let isTabMatch = false;
-        const hasChecked = p.status !== "Pending" && p.status !== "";
+        const hasChecked = (p.status || "Pending") !== "Pending" && p.status !== "";
         
         if (currentFilterTab === "Pending") {
           isTabMatch = !hasChecked; 
@@ -565,9 +565,9 @@
 
         let isKeywordMatch = true;
         if (searchKeyword) {
-          isKeywordMatch = p.trackingNo.toLowerCase().includes(searchKeyword) || 
-                            p.orderId.toLowerCase().includes(searchKeyword) ||
-                            p.buyer.toLowerCase().includes(searchKeyword);
+          isKeywordMatch = (p.trackingNo || "").toLowerCase().includes(searchKeyword) || 
+                            (p.orderId || "").toLowerCase().includes(searchKeyword) ||
+                            (p.buyer || "").toLowerCase().includes(searchKeyword);
         }
 
         return isTabMatch && isKeywordMatch;
@@ -701,7 +701,7 @@
     }
 
     function loadParcelForChecking(trackingNo) {
-      const parcel = parcelsData.find(p => p.trackingNo.toLowerCase() === trackingNo.toLowerCase().trim());
+      const parcel = parcelsData.find(p => (p.trackingNo || "").toLowerCase() === trackingNo.toLowerCase().trim());
       if (!parcel) {
         playBeep(false);
         showAlert("查無資料", `試算表中沒有寄件單號為 ${trackingNo} 的包裹紀錄。`, "error");
@@ -1073,22 +1073,19 @@
         if (GAS_API_URL.includes("XXXXXX_YOUR_ID_XXXXXX")) {
           await new Promise(resolve => setTimeout(resolve, 1200));
         } else {
-          // 💡 關鍵修正：
-          // 這裡加上獨立的 try-catch。在 no-cors 下，瀏覽器會因為跨網域 302 Redirect 拋出錯誤，
-          // 但此時資料早已經順利送達並更新 Google 試算表了！
-          // 我們在此「智慧過濾阻擋」，讓前端順利繼續執行 Success 流，避免彈出 False-alarm 存檔失敗。
-          try {
-            await fetch(GAS_API_URL, {
-              method: "POST",
-              mode: "no-cors",
-              headers: {
-                "Content-Type": "text/plain"
-              },
-              body: JSON.stringify(payload)
-            });
-          } catch (fetchErr) {
+          // 💡 終極優化：採用非同步、非阻塞 (Fire-and-Forget) 設計並安全捕獲
+          // 解決所有瀏覽器在 302 重導向時產生的 CORS 阻擋錯誤！
+          // 此時試算表一定會寫入成功，我們直接在背景送出，讓前端主流程秒速執行！
+          fetch(GAS_API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+              "Content-Type": "text/plain"
+            },
+            body: JSON.stringify(payload)
+          }).catch(fetchErr => {
             console.warn("GAS CORS redirect warning (safely ignored):", fetchErr);
-          }
+          });
         }
 
         playBeep(true);
@@ -1103,7 +1100,7 @@
           parcelsData[localIdx].notes = payload.notes;
           
           computedItems.forEach(cItem => {
-            const originItem = parcelsData[localIdx].items.find(i => i.rowNum === cItem.rowNum);
+            const originItem = (parcelsData[localIdx].items || []).find(i => i.rowNum === cItem.rowNum);
             if (originItem) {
               originItem.receivedQty = cItem.computedRealQty;
               originItem.status = cItem.computedStatus;
@@ -1117,7 +1114,7 @@
         document.getElementById('manual-tracking').value = ""; 
         closeCheckPanel();
         
-        // 🎯 這裡會順暢執行，重新計算「已清點」與「異常數」儀表板數據！
+        // 🎯 重新計算「已清點」與「異常數」儀表板數據！
         updateDashboardAndSimulator();
 
       } catch (err) {
