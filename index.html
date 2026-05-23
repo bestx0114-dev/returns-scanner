@@ -126,13 +126,13 @@
   <!-- 頂部標頭 (🎯 已加入 no-scale 類別，並對 Logo & 間距進行絕對 px 鎖定) -->
   <header class="no-scale bg-gray-900 border-b border-gray-800 px-4 py-3 sticky top-0 z-40 flex items-center justify-between shadow-md">
     <div class="flex items-center space-x-2">
-      <!-- 🎯 加上 logo-container 類別，使 CSS 能強制覆蓋 rem 縮放 -->
+      <!-- 🎯 紫色 Logo 容器尺寸與圖示 -->
       <div class="logo-container bg-indigo-600 p-2 rounded-xl text-white">
         <i data-lucide="package-check" class="w-5 h-5"></i>
       </div>
       <div>
         <h1 class="text-sm font-bold tracking-wider text-white">ReturnScanner</h1>
-        <p class="text-xs text-gray-400">退貨智能核對系統 v3.9+</p>
+        <p class="text-xs text-gray-400">百思特退貨清點系統 v4.0+</p>
       </div>
     </div>
     
@@ -216,7 +216,7 @@
         </button>
         
         <div class="relative flex items-center">
-          <input type="text" id="manual-tracking" placeholder="手動輸入寄件編號或用掃描槍..." class="w-full bg-gray-800 border border-gray-700 rounded-xl py-3 pl-10 pr-16 text-sm text-white focus:outline-none focus:border-indigo-500 transition select-text">
+          <input type="text" id="manual-tracking" placeholder="手動輸入寄件編號或用掃描槍..." class="w-full bg-gray-850 border border-gray-700 rounded-xl py-3 pl-10 pr-16 text-sm text-white focus:outline-none focus:border-indigo-500 transition select-text">
           <i data-lucide="search" class="absolute left-3.5 w-4 h-4 text-gray-400"></i>
           <button onclick="handleManualSearch()" class="absolute right-2 bg-gray-700 hover:bg-gray-600 text-xs text-white font-medium px-3.5 py-1.5 rounded-lg transition">
             尋找
@@ -448,8 +448,7 @@
       }
     }
 
-    // 🎯 修正核心：強化 showAlert 的安全性，如果 custom-alert 或內部 DOM 元素為 null（例如快取異常或渲染出錯時），
-    // 自動切換為標準瀏覽器的 alert 模式，保證主控制流程 100% 不閃退、不中斷
+    // showAlert 安全降級機制
     function showAlert(title, message, type = 'info') {
       const modal = document.getElementById('custom-alert');
       const titleEl = document.getElementById('alert-title');
@@ -457,7 +456,6 @@
       const iconBox = document.getElementById('alert-icon-box');
       const icon = document.getElementById('alert-icon');
       
-      // 🛡️ 智慧降級安全機制 (Fallback)
       if (!titleEl || !msgEl || !modal) {
         alert(title + "\n\n" + message);
         return;
@@ -506,7 +504,7 @@
       }
     }
 
-    // 🎯 智慧 PWA 本地記憶字型比例
+    // 智慧 PWA 本地記憶字型比例
     function changeFontSize(size) {
       const html = document.documentElement;
       const btnSmall = document.getElementById('btn-fs-small');
@@ -545,7 +543,6 @@
       checkCORSMode();
       fetchSheetData();
       
-      // 讀取本地快取的字體設定
       const savedFontSize = localStorage.getItem('scanner-font-size') || 'medium';
       changeFontSize(savedFontSize);
     };
@@ -869,6 +866,7 @@
         item.problemQty = 0; 
         item.exceptionType = "正常"; 
         item.itemNote = ""; 
+        item.visualChecked = false; // 🎯 預設視覺對帳核選狀態為未勾選
       });
 
       document.getElementById('ai-draft-box').classList.add('hidden');
@@ -881,10 +879,46 @@
       checkPanel.scrollIntoView({ behavior: 'smooth' });
     }
 
+    // 🎯 智慧核對與同步機制：點擊打勾時同步所有同品項
+    function toggleVisualCheck(sku, index, btn) {
+      const wasChecked = btn.getAttribute('data-checked') === 'true';
+      const newCheckedState = !wasChecked;
+      
+      // 1. 同步快取狀態：將目前包裹中，相同 SKU 的所有項目全部同步為相同狀態
+      currentParcel.items.forEach(item => {
+        if (String(item.sku || '').trim() === sku) {
+          item.visualChecked = newCheckedState;
+        }
+      });
+      
+      // 2. 即時操作 DOM 以同步所有卡片：將相同 SKU 的按鈕全部同步樣式
+      const btns = document.querySelectorAll(`.visual-check-btn[data-sku="${sku}"]`);
+      btns.forEach(b => {
+        b.setAttribute('data-checked', String(newCheckedState));
+        if (newCheckedState) {
+          b.className = "visual-check-btn w-12 h-12 rounded-xl border flex items-center justify-center transition active:scale-95 cursor-pointer bg-emerald-600/20 border-emerald-500 text-emerald-400 shadow-lg shadow-emerald-900/10 shrink-0";
+        } else {
+          b.className = "visual-check-btn w-12 h-12 rounded-xl border flex items-center justify-center transition active:scale-95 cursor-pointer bg-gray-950 border-gray-800 text-gray-600 hover:text-gray-400 hover:border-gray-700 shrink-0";
+        }
+      });
+      
+      playBeep(true);
+    }
+
     // 7. 渲染包含「異常類別下拉選單」的商品卡片 (優化字型為 Rem 親和比例)
     function renderCheckingItems() {
       const container = document.getElementById('panel-items-list');
       container.innerHTML = "";
+
+      // 第一階段：先統計此包裹內相同 SKU 商品的累積總數
+      const skuTotalMap = {};
+      currentParcel.items.forEach(item => {
+        const sku = String(item.sku || '').trim();
+        const qty = parseInt(item.expectedQty || 0, 10);
+        if (sku) {
+          skuTotalMap[sku] = (skuTotalMap[sku] || 0) + qty;
+        }
+      });
 
       currentParcel.items.forEach((item, index) => {
         const hasProblem = item.exceptionType !== "正常";
@@ -899,29 +933,54 @@
           
         const matchClass = hasProblem ? "text-rose-400 font-extrabold" : "text-gray-400";
 
+        // 第二階段：抓取同品項加總總數
+        const sku = String(item.sku || '').trim();
+        const totalQtyForSku = skuTotalMap[sku] || 0;
+        let totalQtyBadgeHtml = '';
+
+        // 如果在同包裹中，該品項總數大於此列商品的件數，說明買家有重複下單/分開列出的同品項！
+        if (totalQtyForSku > item.expectedQty) {
+          totalQtyBadgeHtml = `
+            <span class="ml-2 text-xs font-black text-amber-400 bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 rounded-lg animate-pulse tracking-wide">
+              ⚠️ 同品項總計: ${totalQtyForSku} 件
+            </span>
+          `;
+        }
+
         const div = document.createElement('div');
         div.className = `p-4 rounded-xl border ${cardBorder} flex flex-col justify-between gap-3 transition-all duration-200`;
+        
+        // 🎯 核心升級：核對方塊置於單價下方，並確保點選時同步相同代號
         div.innerHTML = `
           <div class="flex items-start justify-between gap-2">
             <div class="flex-1">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <!-- 🎯 放大儲位、狀態與 Row 標籤，捨棄絕對 pixel text-[10px] 單位，採用響應 Rem 單位 -->
                 <span class="text-xs font-bold bg-gray-800 text-gray-300 px-2 py-0.5 rounded border border-gray-700">儲位: ${item.location}</span>
                 <span class="text-xs font-bold px-2 py-0.5 rounded ${badgeColor}">
                   清點狀態: ${item.exceptionType === '正常' ? '正常' : item.exceptionType}
                 </span>
                 <span class="text-xs text-gray-500 font-mono">Row: ${item.rowNum}</span>
               </div>
-              <!-- 🎯 商品名稱放大 -->
               <h4 class="text-base font-bold text-white mt-2 select-text">${item.name}</h4>
               <p class="text-xs font-mono text-gray-400 mt-1 select-text">商品代號: <span class="bg-black/50 px-1.5 py-0.5 rounded text-indigo-300 font-bold">${item.sku}</span></p>
             </div>
-            <!-- 🎯 單價放大 -->
-            <p class="text-sm font-mono font-bold text-indigo-400">NT$${item.price}</p>
+            <!-- 右側：價格與核取方塊組合 -->
+            <div class="flex flex-col items-end justify-between self-stretch shrink-0 gap-2.5">
+              <p class="text-sm font-mono font-bold text-indigo-400">NT$${item.price}</p>
+              
+              <!-- 🎯 視覺防錯勾選按鈕 (點選時自動聯動同 SKU 品項，添加 type="button" 防機制衝突) -->
+              <button type="button" 
+                      onclick="toggleVisualCheck('${sku}', ${index}, this)" 
+                      class="visual-check-btn w-12 h-12 rounded-xl border flex items-center justify-center transition active:scale-95 cursor-pointer ${item.visualChecked ? 'bg-emerald-600/20 border-emerald-500 text-emerald-400 shadow-lg shadow-emerald-900/10' : 'bg-gray-950 border-gray-800 text-gray-600 hover:text-gray-400 hover:border-gray-700'} shrink-0"
+                      data-sku="${sku}"
+                      data-checked="${item.visualChecked ? 'true' : 'false'}">
+                <i data-lucide="check" class="w-6 h-6 pointer-events-none"></i>
+              </button>
+            </div>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-center border-t border-gray-800/40 pt-2.5">
-            <!-- 左側：異常類型下拉選單 (放大間距、字體、高度) -->
+            <!-- 左側：異常類型下拉選單 -->
             <div>
               <label class="block text-xs font-medium text-gray-400 mb-1">異常原因分類：</label>
               <select onchange="updateItemExceptionType(${index}, this.value)" class="w-full bg-gray-950 border border-gray-800 rounded-lg p-2 text-sm text-white focus:outline-none focus:border-indigo-500 h-10">
@@ -935,7 +994,9 @@
 
             <!-- 右側：異常數量加減 -->
             <div class="flex flex-col items-start md:items-end mt-2 md:mt-0">
-              <span class="text-xs text-gray-400 mb-1">異常數量 (應退 <strong class="text-white text-sm font-bold font-mono">${item.expectedQty}</strong> 件)：</span>
+              <span class="text-xs text-gray-400 mb-1 flex items-center flex-wrap">
+                異常數量 (應退 <strong class="text-white text-sm font-bold font-mono mx-1">${item.expectedQty}</strong> 件)${totalQtyBadgeHtml}：
+              </span>
               <div class="flex items-center space-x-3">
                 <button onclick="changeItemQty(${index}, -1)" class="w-10 h-10 rounded-xl bg-gray-800 hover:bg-gray-700 text-white flex items-center justify-center font-bold text-lg transition shadow active:scale-95" ${item.exceptionType === '正常' ? 'disabled' : ''}>-</button>
                 <span class="text-lg font-black font-mono ${matchClass} min-w-[24px] text-center">${item.problemQty || 0}</span>
@@ -957,6 +1018,11 @@
         `;
         container.appendChild(div);
       });
+
+      // 🎯 確保 Lucide 向量圖示庫在每次卡片動態渲染時正確初始化
+      if (typeof lucide !== 'undefined' && lucide.createIcons) {
+        lucide.createIcons();
+      }
     }
 
     // 補回用於隱藏和清空面板的 closeCheckPanel 函數
